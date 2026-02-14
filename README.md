@@ -36,7 +36,7 @@ Link:
 
 ### Procedure Notes
 - ingest_loan_monthly();  This base procedure will scan our stage at pre-determined intervals for target files and ingest and process new loan_monthly files in accordance with our requirements.  Example: "call ingest_loan_monthly();"  It is explicitly coded and well-commented.  Note however the call for this procedure is automated via task and stream.  
-- ingest_loan_monthly_backfill_or_reload(file_pattern_date varchar, remediation_type varchar); This remediation procedure will backfill older files or delete bad files and then reload updated versions, also in accordance with our requirements. Aguments include file_pattern date, which is a varchar representing dates outside the range of our regular target files in YYYY-MM format, and remediation_type which is a varchar representing whether to simply add additional older files ('backfill') or to remove bad files and reload them ('reload').  Example: "call ingest_loan_monthly_backfill_or_reload('2025-12', 'reload');"  It is also explicitly coded and well-commented.
+- ingest_loan_monthly_backfill_or_reload(file_pattern_date varchar, remediation_type varchar); This remediation procedure will backfill older files or delete bad files and then reload updated versions, also in accordance with our requirements. Aguments include file_pattern date, which is a varchar representing dates outside the range of our regular target files in YYYY-MM format, and remediation_type which is a varchar representing whether to simply add additional older files or to remove bad files and reload them.  ('backfill' vs. 'reload').  Example: "call ingest_loan_monthly_backfill_or_reload('2025-12', 'reload');"  It is also explicitly coded and well-commented.
 
 ### Bonus Items
  - Run book: 
