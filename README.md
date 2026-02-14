@@ -8,7 +8,7 @@ Link:
 **Sections:**
 - Overview and Approach:  This describes the overall approach and assumptions
 - File List and Description:  This provides a list of relevant project artifact files and their descriptions
-- .sql /.py Files and Description:  This provides a list of reuseable/composable Snowflake objects that may be used in other projects
+- .sql /.py Files and Description:  This provides a list of reuseable/composable Snowflake .sql files that create objects that may be used in other projects
 - Procedure Notes: This provides additional description and explanation of the steps in our ingest_loan_monthly() procedures;
 
 ### Overview and Approach
