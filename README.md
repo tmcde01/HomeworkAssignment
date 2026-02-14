@@ -29,7 +29,7 @@ Link:
  - file_format_infer_schema_pipe_delimited.sql This is a composable file format that is portable for any db, just like the above file.  It to be used with the infer_schema() function to analyze file metadata
  - file_format_ingest_data_pipe_delimited.sql: This is also a composable file format that is also portable for any db, just like the above file.  It to be used with the copy into function to ingest data
  - ingest_loan_monthly().sql: This is our base procedure that will run everyday.  See the Procedure Notes section below.
- - ingest_loan_monthly_backfill_or_reload(file_pattern_date varchar, remediation_type varchar).sql  This is our remdediation procedure that will backfill older files or remediate bad files.  See the Procedure Notes section below.
+ - ingest_loan_monthly_backfill_or_reload(file_pattern_date varchar, remediation_type varchar).sql:  This is our remdediation procedure that will backfill older files or remediate bad files.  See the Procedure Notes section below.
  - postgres_hc_connection_config.py:  The local server to PostgreSQL connector .py module, included as a module in postgres_files_to_snowflake.py below
  - snowflake_hc_connection_config.py: The local server to Snowflake connector .py module, included as a module in postgres_files_to_snowflake.py below
  - postgres_files_to_snowflake.py:  The main .py script that will transfer files from PostgreSQL to snowflake, intended to simulate a daily file drop from a vendor to an AWS External Stage.  (Here we use internal stages as a proxy)
