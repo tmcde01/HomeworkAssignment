@@ -14,7 +14,7 @@ Link:
 ### Overview and Approach
  - Test-driven development is very often the desired approach:  We should obtain, create and use test data to validate our logic and our results (such as for idempotency).  In addition, data at scale is often too large for human comprehension, so we should anticipate and include identifiable edge cases
  -  We want to work as effeciently as possible.  Success here is defined as:  a small code base using repeatable and composable patterns; eliminating redundant processing by including data quality controls in the logical processing steps vs. after the fact error-checking; explicit coding style that is well commented and maintainable; efficient queries, comprehensive exception handling, logging and alerting; and document repositories.
- -  Importantly, we do not want a uni-directional process that can only the most recent files incrementally.  If we cannot perform a backfill or re-load without breaking downstream processes or performing signficant manual backout and correction then our design pattern is faulty.
+ -  Importantly, we do not want a uni-directional process that can only ingest the most recent files incrementally.  If we cannot perform a backfill or re-load without breaking downstream processes or performing signficant manual backout and correction then our design pattern is faulty.
  -  Lastly, a good employee figures out how to do what they are told without excessive supervision.  A better employee figures out how to do that they are told while adding additional value or developing new capabilities.  The best employee presents both options to their boss and then faithfully implements the final decision.
 
 ### File List and Explanation
