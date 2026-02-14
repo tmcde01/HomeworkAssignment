@@ -1,4 +1,6 @@
 ## This repo contains the work product for the Snowflake SQL/ETL Homework Assigment
+****Note:***  A short video link demonstrating the assignment work product and covering the topics in this README.md file is provided below.  It is recommended to view the video first, then refer to details below as needed
+
 **Sections:**
 - Overview and Approach:  This describes the overall approach and assumptions
 - File List and Description:  This provides a list of relevant project artifact files and their descriptions
