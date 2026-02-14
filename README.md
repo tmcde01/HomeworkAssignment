@@ -25,7 +25,7 @@ Link:
   - task_dag.md.  This is a screenshot of a snowflake task dag showing object dependencies.  Tasks are used to create the diagram, and could be used as wrappers to call procedures, but here are merely placeholders with additional notes. 
 
 ### .sql / .py Files and Description
- - create_db_and_schema_objects.sql:  This file will stand up a generic database with our bronze, silver, and gold schemas.  An admin schema with control tables is included.  Also included are stages, file formats, and tasks, all in their relevant schema.  Comments are included with each object create statement.  It is portable and composable and can be used to create any similar db.
+ - database_object_creation.sql:  This file will stand up a generic database with our bronze, silver, and gold schemas.  An admin schema with control tables is included.  Also included are stages, file formats, and tasks, all in their relevant schema.  Comments are included with each object create statement.  It is portable and composable and can be used to create any similar db.
  - file_format_infer_schema_pipe_delimited.sql This is a composable file format that is portable for any db, just like the above file.  It to be used with the infer_schema() function to analyze files for content
  - ingest_data_pipe_delimited_replace_invalid_escape_unenclosed.sql: This is a composable file format that is also portable for any db, just like the above file.  It to be used with the copy into function to ingest data
  - ingest_loan_monthly().sql: This is our base procedure that will run everyday.  See the Procedure Notes section below.
