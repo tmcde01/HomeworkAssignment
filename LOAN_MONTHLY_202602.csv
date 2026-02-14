@@ -1,0 +1,32 @@
+"reporting_month","loan_id","servicer_name","balance","interest_rate","state","updated_at","loan_id + reporting_month","testing_note"
+"2026-01",986874513,"SERVCO",324567.01,4.57%,"AK","2026-02-05T14:23:17+09:00","9868745132026-01","monthly update, no change"
+"2026-02","458552ZZ0","MY SERV",568471.23,4.70%,"GUAM","2026-02-12T08:45:33-05:00","458552ZZ02026-02","monthly update, no change"
+"2026-02","ULS_267141226","UBERLOANSERVICER",53891.55,3.26%,"AR","2026-02-18T22:11:09+00:00","ULS_2671412262026-02","monthly update, balance change"
+"2026-02",377297983,"SERVCO",10356.47,5.25%,"FL","2026-02-03T16:37:42+01:00","3772979832026-02","monthly update, balance, rate, state change"
+"2026-02","674908Z86","MY SERV",789561.23,5.43%,"RI","2026-02-27T11:58:26-08:00","674908Z862026-02","monthly update, duplicate record"
+"2026-02","674908Z86","MY SERV",789561.23,5.43%,"RI","2026-02-27T11:58:26-08:00","674908Z862026-02","monthly update, duplicate record"
+"2026-02","478Z00Z32","MY SERV",569874.23,4.57%,"NEW JERSEY","2026-02-15T07:49:15+08:00","478Z00Z322026-02","monthly update, duplicate record, updated datestamp"
+"2026-02","478Z00Z32","MY SERV",569874.23,4.57%,"NEW JERSEY","2026-02-16T07:49:15+08:00","478Z00Z322026-02","monthly update, duplicate record, updated datestamp"
+"2026-02","ULS_774101641","UBERLOANSERVICER",5689.24,5.69%,"CO","2026-02-24T13:06:44+02:00","ULS_7741016412026-02","monthly update, second record, updated balance, updated timestamp"
+"2026-02","ULS_774101641","UBERLOANSERVICER",10689.24,5.69%,"CO","2026-02-24T15:06:44+02:00","ULS_7741016412026-02","monthly update, second record, updated balance, updated timestamp"
+"2026-02","125879_US_DE","NEWLOANCO",125698.87,4.91%,"DE","2026-02-13T15:06:44+02:00","125879_US_DE2026-02","new record"
+"2026-02","148798_US_OH","NEWLOANCO",547891.36,5.24%,"OHIO","2026-02-15T15:06:44+02:00","148798_US_OH2026-02","new record"
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+,,,,,,,,
+"To do:","Add a second month csv with updates",,,,"Row count check",,,
+,"Add a third csv with difficult cases",,,,"-",,,
+,,,,,"rows_loaded in RAW vs rows_processed into TARGET",,,
+,"Add all to github and update read me",,,,"? Duplicate check",,,
+,"Get github integration with workspaces",,,,"-",,,
+,,,,,"duplicates in RAW by business key",,,
+,"Create re-useable object creation script",,,,"? Null check",,,
+,"Move files to internal stage(s)",,,,"-",,,
+,,,,,"loan_id and reporting_month must not be null",,,
+,"Begin dynamic scripting",,,,"? Basic anomaly check (simple)",,,
+,,,,,"-",,,
+,,,,,"balance < 0 OR interest_rate < 0 OR interest_rate > 25",,,
+,,,,,,,,
+,,,,,,,,
+,,,,,"QC checks (row count, duplicates, null checks",,,

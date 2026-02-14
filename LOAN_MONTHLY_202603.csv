@@ -1,0 +1,6 @@
+"reporting_month","loan_id","servicer_name","balance","interest_rate","state","updated_at","loan_id + reporting_month","testing_note"
+"2026-02",,"SERVCO",324567.01,4.57%,"AK","2026-03-05T14:23:17+09:00",,"low row count, null check loan_id, concating business key on null will fail"
+,"458552ZZ0","MY SERV",568471.23,4.70%,"GUAM","2026-03-12T08:45:33-05:00",,"low row count, null check loan_id, concating business key on null will fail"
+"2026-03","ULS_267141226","UBERLOANSERVICER",-53891.55,3.26%,"AR","2026-03-18T22:11:09+00:00","ULS_2671412262026-02","low row count, balance check < 0"
+"2026-03",377297983,"SERVCO",10356.47,-5.25%,"FL","2026-03-03T16:37:42+01:00","3772979832026-02","low row coun interest rate check < 0"
+"2026-03","674908Z86","MY SERV",789561.23,25.43%,"RI","2026-03-27T11:58:26-08:00","674908Z862026-02","low row count interest rate check > 25"
