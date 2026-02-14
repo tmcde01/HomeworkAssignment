@@ -1,1 +1,0 @@
-select 'fuck off';
