@@ -2,8 +2,8 @@
 **Sections:**
 - Overview and Approach:  This describes the overall approach and assumptions
 - File List and Description:  This provides a list of relevant project artifact files and their descriptions
-- .sql Files and Description:  This provides a list of reuseable/composable Snowflake objects that may be used in other projects
-- Procedure Notes: This provides additional description and explanation of the steps in our ingest_loan_monthly() procedure;
+- .sql /.py Files and Description:  This provides a list of reuseable/composable Snowflake objects that may be used in other projects
+- Procedure Notes: This provides additional description and explanation of the steps in our ingest_loan_monthly() procedures;
 
 ### Overview and Approach
  - Test-driven development is very often the desired approach:  We should obtain, create and use test data to validate our logic and our results (such as for idempotency).  In additional, data at scale is often too large for human comprehension, so we should anticipate and include identifiable edge cases
@@ -16,7 +16,26 @@
   - LOAN_MONTHLY_202601.csv:  This is a csv representing the first month's initial load for testing.  Columns and datatypes from the Assignment.pdf were used.  Additionally values were deliberately made difficult and non-uniform because often we cannot control vendor-supplied data.  A testing_note column has been added to track our test cases:  these should all read "original record"
   - LOAN_MONTHLY_202602.csv:  This is a second additional csv representing the second month's incremental load.  Records have been adjusted to reflect the test cases from the assignment instructions.  These are described in the testing_notes column, such as:  new records, monthly updates with our without changes, duplicate records with similar or different timestamps, secondary or additional records with updated timestamps.
   - LOAN_MONTHLY_202602.csv:  This is a third additional csv representing the third months's incremental load.  Records have been adjusted to reflect the data quality test cases from the assignment instructions.  These are also described in the testing notes column, such as: low row count, null check loan_id and null check reporting_month (concating the business key on these nulls is expected to fail), balance check and interest rate check < 0, interest rate check > 25
+  - task_dag.md.  This is a screenshot of a snowflake task dag showing object dependencies.  Tasks are used to create the diagram, and could be used as wrappers to call procedures, but here are merely placeholders with additional notes. 
 
-### .sql Files and Description
+### .sql / .py Files and Description
+ - create_db_and_schema_objects.sql:  This file will stand up a generic database with our bronze, silver, and gold schemas.  An admin schema with control tables is included.  Also included are stages, file formats, and tasks, all in their relevant schema.  Comments are included with each object create statement.  It is portable and composable and can be used to create any similar db.
+ - infer_schema_pipe_delimited_replace_invalid_escape_unenclosed.sql: This is a composable file format that is portable for any db, just like the above file.  It to be used with the infer_schema() function to analyze files for content
+ - ingest_data_pipe_delimited_replace_invalid_escape_unenclosed.sql: This is a composable file format that is also portable for any db, just like the above file.  It to be used with the copy into function to ingest data
+ - ingest_loan_monthly().sql: This is our base procedure that will run everyday.  See the Procedure Notes section below.
+ - ingest_loan_monthly_backfill_or_reload(file_pattern_date varchar, remediation_type varchar).sql  This is our remdediation procedure that will backfill older files or remediate bad files.  See the Procedure Notes section below.
+ - postgres_hc_connection_config.py:  The local server to PostgreSQL connector .py module, included as a module in postgres_files_to_snowflake.py below
+ - snowflake_hc_connection_config.py: The local server to Snowflake connector .py module, included as a module in postgres_files_to_snowflake.py below
+ - postgres_files_to_snowflake.py:  The main .py script that will transfer files from PostgreSQL to snowflake, intended to simulate a daily file drop from a vendor to an AWS External Stage.  (Here we use internal stages as a proxy)
 
 ### Procedure Notes
+- ingest_loan_monthly();  This base procedure will scan our stage at pre-determined intervals for target files and ingest and process new loan_monthly files in accordance with our requirements.  Example: "call ingest_loan_monthly();"  It is explicitly coded and well-commented.  Note however the call for this procedure is automated via task and stream.  
+- ingest_loan_monthly_backfill_or_reload(file_pattern_date varchar, remediation_type varchar); This remediation procedure will backfill older files or delete bad files and then reload updated versions, also in accordance with our requirements. Aguments include file_pattern date, which is a varchar representing dates outside the range of our regular target files in YYYY-MM format, and remediation_type which is a varchar representing whether to simply add additional older files ('backfill') or to remove bad files and reload them ('reload').  Example: "call ingest_loan_monthly_backfill_or_reload('2025-12', 'reload');"  It is also explicitly coded and well-commented.
+
+### Bonus Items
+ - Run book:  Omitted.  Nothing additional needs to be done to run this process as it is completely automated.  Just review:
+   --  The task_dag.md file in the "File List and Explanation" section for a flow diagram
+   -- The ".sql / .py files and Description for implementation"
+   -- The "Procedure Notes" sections for the applicable procedure. 
+ - Object dependency diagram.  See the task_dag.md file in the "File List and Explanation" section for a representative object dependency diagram.
+ - Additional bonus item:  Load the files in this git into your local snowflake instance and see if it runs without error.  (Absent PosgreSQL, You will need to manually add files to the internal stages)
