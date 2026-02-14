@@ -40,8 +40,8 @@ Link:
 
 ### Bonus Items
  - Run book: 
-   --  Step 1:  See the task_dag.md file in the "File List and Explanation" section for a flow diagram
-   --  Step 2:  Using the file "database_object_creation.sql", run all  It will fail at line 72, just load the csv files from the git repo to the admin stage, then hit "Run all" again.  LIne 72:
+   -  Step 1:  See the task_dag.md file in the "File List and Explanation" section for a flow diagram
+   -  Step 2:  Using the file "database_object_creation.sql", run all  It will fail at line 72, just load the csv files from the git repo to the admin stage, then hit "Run all" again.  LIne 72:
             create table if not exists admin_schema.loan_monthly_expected_file_schema  as (
                 select 
                     *
@@ -56,6 +56,6 @@ Link:
                             )
                         )
                   );
-      -- Step 3:  At this point you have everything except the tranform layer and logic.  This is discussed in the "Transform_Silver_Logic.sql" file.
+      - Step 3:  At this point you have everything except the tranform layer and logic.  This is discussed in the "Transform_Silver_Logic.sql" file.
  - Object dependency diagram.  See the task_dag.md file in the "File List and Explanation" section for a representative object dependency diagram.
  - Additional bonus item:  Load the files in this git into your local snowflake instance and see if it runs without error.  (Absent PosgreSQL, You will need to manually add files to the internal stages)
