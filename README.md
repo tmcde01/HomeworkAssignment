@@ -2,6 +2,7 @@
 ****Note:****  
 
 A short video link demonstrating the assignment work product and covering the topics in this README.md file is provided below.  It is recommended to view the video first, then refer to details below as needed:
+
 Link:  
 
 **Sections:**
