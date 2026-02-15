@@ -39,7 +39,17 @@ Link:
   -- Conversely, for user-facing queries against complex views, I'd size up the warehouse appropriately (Medium/Large) to ensure fast response times, since user experience matters and the warehouse can optimize complex queries better with
      more resources.
 
-  -- Key principles: (1) Start with X-Small/Small warehouses and scale only when performance testing shows clear benefit, (2) Use serverless for sporadic, event-driven workloads; use dedicated warehouses for sustained processing, (3) Enable aggressive auto-suspend (60 seconds) to avoid idle charges, (4) Use multi-cluster autoscaling selectively for unpredictable concurrent workloads, not predictable batch jobs, (5) Monitor query performance and credit consumption to find the optimal balance."
+  -- Key principles:
+
+      (1) Start with X-Small/Small warehouses and scale only when performance testing shows clear benefit
+
+      (2) Use serverless for sporadic, event-driven workloads; use dedicated warehouses for sustained processing
+
+      (3) Enable aggressive auto-suspend (60 seconds) to avoid idle charges
+
+      (4) Use multi-cluster autoscaling selectively for unpredictable concurrent workloads, not predictable batch jobs,
+
+      (5) Monitor query performance and credit consumption to find the optimal balance.
 
 ### Project Artifact File List and Descriptions
   - Assignment.pdf:  This is the original assignment, reviewed and formated to help guide development work.  It shows a thought process behind the reorganization of requirements to support an ordered workflow.
