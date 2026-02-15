@@ -66,7 +66,7 @@ create file format if not exists admin_schema.infer_schema_pipe_delimited
     empty_field_as_null = true
     compression = 'gzip';
 
-STOP HERE:  YOU WILL NEED TO UPLOAD THE TESTING CSV FILE
+STOP HERE:  You will need to upload the test file 'LOAN_MONTHLY_202601.csv.gz' to the stage at admin_schema.testing_files  
 
 -- CREATE A CONTROL TABLE TO BASELINE THE FILE SCHEMA 
 create table if not exists admin_schema.loan_monthly_expected_file_schema  as (
@@ -115,13 +115,13 @@ select * from raw_bronze.inbound_loan_monthly_files_stream;
 select * from admin_schema.loan_monthly_trigger_reset_temp_table;
     
 
--- COPY SOME FILES INTO IT
-copy files 
-    into @raw_bronze.daily_files 
-    from @admin_schema.testing_files
-    pattern = '^.*\LOAN_MONTHLY_\\d{6}\\.csv\\.gz$';
+-- FOR TESTING WE CAN COPY FILES FROM OUR ADMIN SCHEMA TO THE WORKING STAGE IN THE RAW_BRONZE SCHEMA
+-- copy files 
+--     into @raw_bronze.daily_files 
+--     from @admin_schema.testing_files
+--     pattern = '^.*\LOAN_MONTHLY_\\d{6}\\.csv\\.gz$';
 
-select * from directory(@raw_bronze.daily_files);
+-- select * from directory(@raw_bronze.daily_files);
 
 
 -- CREATE A FILE FORMAT FOR FILE INGESTION
@@ -361,23 +361,34 @@ end;
 
 -- CHECK PROCESS OR CALL PROCEDURES
 -------------------------------------------------------
+-- That's it, we're done!  Now to see the process work do the following
 
--- That's it, we're done!  
+-- Load files:
+    -- Via one of the snowcli tools or manually through the stage UI, load our the following to raw_bronze.daily_files
+        -- LOAN_MONTHLY_202601.csv.gz
+        -- LOAN_MONTHLY_202602.csv.gz
+        -- LOAN_MONTHLY_202603.csv.gz
+    -- Then refresh the stage, i.e., "alter stage raw_bronze.daily_files refresh;"
 
--- To check process output:
+-- Trigger the procedures:
+call raw_bronze.loan_monthly_copy_into_raw_bronze();
+call transform_silver.loan_monthly_merge_into_target_gold();
+
+-- Check process output:
 select * from target_gold.target_loan_monthly 
 order by servicer_name, updated_at, loan_id;
 
--- To trigger procedures manually:
-call transform_silver.loan_monthly_merge_into_target_gold();
-call raw_bronze.loan_monthly_copy_into_raw_bronze();
+
+-- To initiate the automated file ingest process, run all in the task_dag.sql worksheet. 
 
 
-
+    -- Include steps for adding procedures
     -- Create the logging table
     -- Create and refine your procedures
+        -- Include a check for new file step
         -- Include exceptions
         -- Include simple logging    
+    -- Run everything
     -- Clean up the git repo
     -- Make a video
     

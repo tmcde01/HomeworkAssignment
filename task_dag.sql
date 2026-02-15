@@ -6,12 +6,30 @@
 use database homework_assignment;
 use schema admin_schema;
 
--- This is our root task.  It uses the stream we created to check for a new file drop.  It runs serverless every
+
+-- IF NOT DONE PREVIOUSLY, WE WILL NEED TO PROVIDE PERMISSIONS TO THE SYSADMIN ROLE TO MANAGE AND RUN TASKS
+-- use role accountadmin;
+-- grant execute task on account to role sysadmin;
+-- grant execute managed task on account to role sysadmin;
+-- use role sysadmin;
+
+
+-- Below is our root task.  To work around the limitations of an internal stage not having auto-refresh capabilities, we'll 
+-- run this to refresh it and thus update the stream as needed for the follow-on task. It runs serverless every
 -- five minutes, which means we do not need to keep a warehouse running continuously.  
+
+-- -- drop task admin_schema.loan_monthly_0_refresh_stage;
+create task if not exists admin_schema.loan_monthly_0_refresh_stage
+    schedule = 'using cron */5 * * * * America/Denver'
+        as 
+            alter stage raw_bronze.daily_files refresh;
+
+
+-- This is our triggering task.  It uses the stream we created to check for a new file drop.  It also runs serverless 
 
 -- -- drop task admin_schema.loan_monthly_1_ingest_start;
 create task if not exists admin_schema.loan_monthly_1_ingest_start
-    schedule = 'using cron */5 * * * * America/Denver'
+    after admin_schema.loan_monthly_0_refresh_stage
     when system$stream_has_data('raw_bronze.inbound_loan_monthly_files_stream')
         as 
             select true;
@@ -51,27 +69,26 @@ create task if not exists admin_schema.loan_monthly_4_merge_into_target_gold
         call transform_silver.loan_monthly_merge_into_target_gold();
 
 
- -- We will need to provide permissions for our sysadmin role to run the tasks:
-use role accountadmin;
-grant execute task on account to role sysadmin;
-grant execute managed task on account to role sysadmin;
-use role sysadmin;
-
-
  -- Now we need to manage our tasks by activating or deactivating them:  turning off the tasks turns off the process.
- -- Note there is a "gotcha" in that the root task must be started last
+ -- Note there is a "gotcha" in that the root task must be suspended before doing anything, and then started last
+ -- when reinitiating the process
+
+alter task admin_schema.loan_monthly_0_refresh_stage suspend;
+
+alter task admin_schema.loan_monthly_1_ingest_start resume;
 alter task admin_schema.loan_monthly_2_trigger_reset resume;
 alter task admin_schema.loan_monthly_3_copy_into_raw_bronze resume;
 alter task admin_schema.loan_monthly_4_merge_into_target_gold resume;
-alter task admin_schema.loan_monthly_1_ingest_start resume;
+alter task admin_schema.loan_monthly_0_refresh_stage resume;
 
 -- Alternatively we could manage the whole task flow:
--- select system$task_dependents_enable('ADMIN_SCHEMA.LOAN_MONTHLY_1_INGEST_START');
+-- select system$task_dependents_enable('ADMIN_SCHEMA.LOAN_MONTHLY_0_REFRESH_STAGE');
 
-alter task admin_schema.loan_monthly_1_ingest_start suspend;
-alter task admin_schema.loan_monthly_2_trigger_reset suspend;
-alter task admin_schema.loan_monthly_3_copy_into_raw_bronze suspend;
-alter task admin_schema.loan_monthly_4_merge_into_target_gold suspend;
+-- alter task admin_schema.loan_monthly_0_refresh_stage suspend;
+-- alter task admin_schema.loan_monthly_1_ingest_start suspend;
+-- alter task admin_schema.loan_monthly_2_trigger_reset suspend;
+-- alter task admin_schema.loan_monthly_3_copy_into_raw_bronze suspend;
+-- alter task admin_schema.loan_monthly_4_merge_into_target_gold suspend;
 
 
 -- And that's it!  We could add other tasks to do things like clean up our landing layer, run data quality checks,
