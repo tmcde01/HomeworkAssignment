@@ -22,6 +22,7 @@ Link:
   - LOAN_MONTHLY_202601.csv:  This is a csv representing the first month's initial load for testing.  Columns and datatypes from the Assignment.pdf were used.  Additionally values were deliberately made difficult and non-uniform because often we cannot control vendor-supplied data.  A testing_note column has been added to track our test cases:  these should all read "original record"
   - LOAN_MONTHLY_202602.csv:  This is a second additional csv representing the second month's incremental load.  Records have been adjusted to reflect the test cases from the assignment instructions.  These are described in the testing_notes column, such as:  new records, monthly updates with our without changes, duplicate records with similar or different timestamps, and secondary or additional records with updated timestamps.
   - LOAN_MONTHLY_202603.csv:  This is a third additional csv representing the third months's incremental load.  Records have been adjusted to reflect the data quality test cases from the assignment instructions.  These are also described in the testing notes column, such as: low row count; null check on loan_id, null check on reporting_month, and null check on loan_id + reporting_month (concating nulls to generate the business key is expected to fail); balance check for a negative value; interest rate check < 0; and interest rate check > 25
+  - NOTE: For each of the csv's, you want to use the gz version with the Snowflake project.
   - task_dag.md.  This is a screenshot of a snowflake task dag showing object dependencies.  Tasks are used to create the diagram, and could be used as wrappers to call procedures, but here are merely placeholders with additional notes. 
 
 ### .sql / .py Files and Description
@@ -41,7 +42,7 @@ Link:
 ### Bonus Items
  - Run book: 
    -  Step 1:  See the task_dag.md file in the "File List and Explanation" section for a flow diagram
-   -  Step 2:  Using the file "database_object_creation.sql", run all.  The scripts will fail at line 72, just load the csv files from the git repo to the admin stage, then hit "Run all" again.
+   -  Step 2:  Using the file "database_object_creation.sql", run all.  The scripts will fail at line 72, just load the csv.gz files from the git repo to the admin stage, then hit "Run all" again.
     - Failure point at line 72:
             create table if not exists admin_schema.loan_monthly_expected_file_schema  as (
                 select 
