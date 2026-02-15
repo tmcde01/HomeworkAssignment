@@ -27,8 +27,8 @@ Link:
 
 ### .sql / .py Files and Description
  - database_object_creation.sql:  This file will stand up a generic database with our bronze, silver, and gold schemas.  An admin schema with control tables is included.  Also included are stages, file formats, and tasks, all in their relevant schema.  Comments are included with each object create statement.  It is portable and composable and can be used to create any similar db.  All that need to be done is "run all"
- - file_format_infer_schema_pipe_delimited.sql This is a composable file format that is portable for any db, just like the above file.  It to be used with the infer_schema() function to analyze file metadata
- - file_format_ingest_data_pipe_delimited.sql: This is also a composable file format that is also portable for any db, just like the above file.  It to be used with the copy into function to ingest data
+ - file_format_infer_schema_pipe_delimited.sql This is a composable file format that is portable for any db, just like the above file.  It to be used with the infer_schema() function to analyze file metadata.  Provided as an example
+ - file_format_ingest_data_pipe_delimited.sql: This is also a composable file format that is also portable for any db, just like the above file.  It to be used with the copy into function to ingest data.  Also provided as an example
  - ingest_loan_monthly().sql: This is our base procedure that will run everyday.  See the Procedure Notes section below.
  - ingest_loan_monthly_backfill_or_reload(file_pattern_date varchar, remediation_type varchar).sql:  This is our remdediation procedure that will backfill older files or remediate bad files.  See the Procedure Notes section below.
  - postgres_hc_connection_config.py:  The local server to PostgreSQL connector .py module, included as a module in postgres_files_to_snowflake.py below
@@ -42,23 +42,8 @@ Link:
 
 ### Bonus Items
  - Run book: 
-   -  Step 1:  See the task_dag.md file in the "File List and Explanation" section for a flow diagram
-   -  Step 2:  Using the file "database_object_creation.sql", run all.  The scripts will fail at line 72, just load the csv.gz files from the git repo to the admin stage, then hit "Run all" again.
-    - Failure point at line 72:
-            create table if not exists admin_schema.loan_monthly_expected_file_schema  as (
-                select 
-                    *
-                from table(
-                        infer_schema(
-                            location => '@admin_schema.testing_files',
-                            file_format => 'admin_schema.infer_schema_pipe_delimited',
-                            files => 'LOAN_MONTHLY_202601.csv.gz',
-                            ignore_case => false
-                            --max_file_count => <num>
-                            --max_records_per_file => <num>
-                            )
-                        )
-                  );
-   - Step 3:  At this point you have everything except the tranform layer and logic.  This is discussed in the "Transform_Silver_Logic.sql" file.
+   -  Step 1:  Using the file "database_object_creation.sql", run all.  The scripts will fail at line 72.
+   -  Step 2:  Load the csv.gz files from the git repo to the admin_schema.testing_files stage
+   -  Step 3:  Hit "Run all" again.
  - Object dependency diagram.  See the task_dag.md file in the "File List and Explanation" section for a representative object dependency diagram.
- - Additional bonus item:  Load the files in this git into your local snowflake instance and see if it runs without error.  (Absent PosgreSQL, You will need to manually add files to the internal stages)
+ - Additional bonus item:  Load the files in this git into your local snowflake instance and see if it runs without error.  (Absent PosgreSQL, python, or similar You will need to manually add files to the internal stages)
