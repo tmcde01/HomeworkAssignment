@@ -39,8 +39,16 @@ create schema if not exists identifier($target_schema);
 
 use schema identifier($admin_schema);
 
+-- CREATE THE LOGGING TABLE. THIS WILL BE STATICALLY TYPED
+-- drop table admin_schema.
 
--- CREATE A TEST STAGE AND LOAD FILES MANUALLY THROUGH UI FOR TESTING
+LOAD_HISTORY (audit table)
+•
+Capture run_id, start/end time, file_name, rows_parsed, rows_loaded, errors_seen,
+status, error_message
+
+
+-- CREATE A TEST STAGE, FILES WILL BE MANUALLY LOADED
 -- -- drop stage admin_schema.testing_files;
 create stage if not exists admin_schema.testing_files 
 directory = (
@@ -48,10 +56,6 @@ directory = (
     refresh_on_create = true
     -- auto_refresh = true  -- Only works for external stages
     );
-
-
-select * from directory(@admin_schema.testing_files);
-
 
 -- CREATE A FILE FORMAT FOR THE INFER_SCHEMA FUNCTION
 -- -- drop file format admin_schema.infer_schema_loan_monthly;
@@ -139,7 +143,8 @@ create file format if not exists raw_bronze.ingest_data_pipe_delimited
     compression = 'gzip';
 
 
--- USE THE CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR LANDING TABLE
+-- USE THE CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR LANDING TABLE.  THIS MAY SEEM LIKE OVERKILL WITH LESS THAN TEN
+-- COLUMNS IN OUR DATA MODEL, BUT THESE PORTABLE AND CAN BE USED ANYWHERE.  
 -- drop table raw_bronze.raw_loan_monthly;
 declare
     db varchar default 'HOMEWORK_ASSIGNMENT';
@@ -201,6 +206,11 @@ end;
 -- WORK WITHIN TRANSFORM_SILVER SCHEMA
 -------------------------------------------------------
 use schema identifier($transform_schema);
+
+-- NOTE: FOR EFFICIENCY SAKE, THERE ARE NO "SEPARATE" OR "REDUNDANT" DATA QUALITY CHECKS USED AS PART OF THIS EXCERCISE.  INSTEAD, WE DO OUR DATA QUALITY 
+-- CHECKS AND FILTER OUT BAD RECORDS AT OUR TRANSFORMATION STEP USING THE CTE CASCADE.  NOTES ABOUT THIS ARE PROVIDED AT EACH STEP IN THE CASCASD; THIS IS A 
+-- ROBUST APPROACH.  ALSO, THERE IS A DISCUSSION AT THE LAST CTE ABOUT HOW TO MANAGE UPDATES:  WITH THIS DATA SET IS SEEMS LIKE USING THE "UPSERT" (A NEW RECORD WITH UPDATED DATA)
+-- WOULD BE MORE EFFICIENT AND LESS ERROR PRONE THAN MANUALLY PERFORMING INSERT/UPDATE STATEMENTS ON EXISTING RECORDS.
 
 create or replace view transform_silver.vw_loan_monthly_clean as (
 -- THIS IS OUR INITIAL TABLE SCAN IN OUR CTE CASCADE.  WE COULD FILTER WITH A WHERE CLAUSE HERE, BUT FOR
@@ -265,7 +275,7 @@ create or replace view transform_silver.vw_loan_monthly_clean as (
     
     -- THIS IS THE LAST STEP IN GATHERING THE BEST RECORD FOR EACH LOAN ID FOR OUR VIEW
     -- NOTE A CRITICAL ASSUMPION:
-        -- LOADED_AT METADATA WAS CREATED BY US.  LOGICALLLY THE MOST RECENT LOAD WOULD HAVE THE MOST RECENT RECORD.  BUT VENDOR DATA INTEGRITY IS NOT PERFECT SO WE WILL NOT USE IT
+        -- LOADED_AT METADATA WAS CREATED BY OUR PROCESS.  LOGICALLLY THE MOST RECENT LOAD WOULD HAVE THE MOST RECENT RECORD.  BUT VENDOR DATA INTEGRITY IS NOT PERFECT SO WE WILL NOT USE IT
         -- FILE_MONTH, WHICH IS ALSO FILE METADATA CREATED FROM THE FILE NAME COULD BE HELPFUL, PERHAPS EVEN THE METADATA FILE_ROW_NUMBER DEPENDING ON VENDOR BEHAVIOR
         -- BUT LOOKING AT THE DATA, THE "updated_at" COLUMN APPEARS TO BE THE MOST SUGGESTIVE OF RECENT VENDOR ACTIVITY.  UNLIKE METADATA, IT IS NOT PROCESS DEPENDENT. 
         -- WE DO NEED TO TALK TO OUR VENDORS TO UNDERSTAND THE BEHAVIOR, BUT HERE WE ASSUME "updated_at" TO BE THE BEST WAY TO ELIMINATE OLD AND DUPLICATE RECORDS AND GET AT 
@@ -359,6 +369,17 @@ begin
 end;
 
 
+-- CREATE OUR COPY INTO RAW_BRONZE PROCEDURE
+-------------------------------------------------------
+use schema identifier($raw_schema);
+
+
+-- CREATE OUR MERGE INTO TARGET_GOLD PROCEDURE
+-------------------------------------------------------
+use schema identifier($target_schema);
+
+
+
 -- CHECK PROCESS OR CALL PROCEDURES
 -------------------------------------------------------
 -- That's it, we're done!  Now to see the process work do the following
@@ -371,23 +392,24 @@ end;
     -- Then refresh the stage, i.e., "alter stage raw_bronze.daily_files refresh;"
 
 -- Trigger the procedures:
-call raw_bronze.loan_monthly_copy_into_raw_bronze();
-call transform_silver.loan_monthly_merge_into_target_gold();
+    -- call raw_bronze.loan_monthly_copy_into_raw_bronze();
+    -- call transform_silver.loan_monthly_merge_into_target_gold();
 
 -- Check process output:
-select * from target_gold.target_loan_monthly 
-order by servicer_name, updated_at, loan_id;
+    -- select * from target_gold.target_loan_monthly 
+    -- order by servicer_name, updated_at, loan_id;
 
 
 -- To initiate the automated file ingest process, run all in the task_dag.sql worksheet. 
 
 
-    -- Include steps for adding procedures
     -- Create the logging table
     -- Create and refine your procedures
         -- Include a check for new file step
+        -- Include a check for file schema changes step
         -- Include exceptions
         -- Include simple logging    
+    -- Add procedures above
     -- Run everything
     -- Clean up the git repo
     -- Make a video
