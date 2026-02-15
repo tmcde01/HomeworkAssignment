@@ -392,6 +392,9 @@ use schema identifier($target_schema);
         -- LOAN_MONTHLY_202601.csv.gz
         -- LOAN_MONTHLY_202602.csv.gz
         -- LOAN_MONTHLY_202603.csv.gz
+    -- Example: 
+            -- tommy@fedora:~$ export PRIVATE_KEY_PASSPHRASE="your passphrase"
+            -- tommy@fedora:~$ snow stage copy "/home/tommy/DevelopmentWork/Homework/LOAN_MONTHLY_2026*.csv.gz" @homework_assignment.raw_bronze.daily_files -c homework_assignment --auto-compress
     -- Then refresh the stage, i.e., "alter stage raw_bronze.daily_files refresh;"
 
 -- Trigger the procedures:

@@ -84,11 +84,11 @@ alter task admin_schema.loan_monthly_0_refresh_stage resume;
 -- Alternatively we could manage the whole task flow:
 -- select system$task_dependents_enable('ADMIN_SCHEMA.LOAN_MONTHLY_0_REFRESH_STAGE');
 
--- alter task admin_schema.loan_monthly_0_refresh_stage suspend;
--- alter task admin_schema.loan_monthly_1_ingest_start suspend;
--- alter task admin_schema.loan_monthly_2_trigger_reset suspend;
--- alter task admin_schema.loan_monthly_3_copy_into_raw_bronze suspend;
--- alter task admin_schema.loan_monthly_4_merge_into_target_gold suspend;
+alter task admin_schema.loan_monthly_0_refresh_stage suspend;
+alter task admin_schema.loan_monthly_1_ingest_start suspend;
+alter task admin_schema.loan_monthly_2_trigger_reset suspend;
+alter task admin_schema.loan_monthly_3_copy_into_raw_bronze suspend;
+alter task admin_schema.loan_monthly_4_merge_into_target_gold suspend;
 
 
 -- And that's it!  We could add other tasks to do things like clean up our landing layer, run data quality checks,

@@ -1,7 +1,8 @@
 use database homework_assignment;
 use schema transform_silver;
 
--- HERE IS OUR MERGE INTO PROCEDURE WE WILL CALL VIA TASK DAG
+-- HERE IS OUR MERGE INTO PROCEDURE WE WILL CALL VIA TASK DAG.  WE INCLUDE ONLY A SINGLE EXCEPTION BECAUSE
+-- WE COVERED EXCEPTIONS IN THE COPY INTO PROCEDURE.  WE WILL TEST IT THOUGH.
 
 -- drop procedure transform_silver.loan_monthly_merge_into_target_gold();
 create procedure if not exists transform_silver.loan_monthly_merge_into_target_gold()
@@ -11,6 +12,7 @@ as
 -- $$
 
 declare
+    -- Environment variables
     db varchar default 'HOMEWORK_ASSIGNMENT';
     admin_schema varchar default 'ADMIN_SCHEMA';
     control_table varchar default 'LOAN_MONTHLY_EXPECTED_FILE_SCHEMA';
@@ -21,6 +23,8 @@ declare
     target_schema varchar default 'TARGET_GOLD';
     target_table varchar default 'TARGET_LOAN_MONTHLY';
     match_key varchar default 'FILE_RECORD_UNIQUE_KEY';
+
+    -- Dynamic DDL/DML variables
     merge_statement_head varchar default '';
     column_metadata_query varchar default '';
     column_metadata resultset;
@@ -32,11 +36,30 @@ declare
     target_column_dml varchar default '';
     values_dml varchar default '';
     merge_into_statement default '';
+
+    -- Process logging variables
+    query_id varchar default '';
+    run_id varchar default '';
+    start_time varchar default '';
+    end_time timestamp_tz;
+    processing_time time;
+    procedure_step_result varchar default '';
+    procedure_run_report varchar default '';
+    return_statement varchar default '';
+
+    -- Exception handling variables
+    sql_error_message varchar default '';
+    exception_message variant;
     
 begin
 
     execute immediate ('use database ' || :db);
     execute immediate ('use schema ' || :source_schema);
+
+-- GET YOUR VARIABLES
+    run_id varchar default '';
+    start_time varchar default '';
+    
 
 
     merge_statement_head := 'merge into ' || :target_schema || '.' || :target_table || ' t 
@@ -87,29 +110,77 @@ begin
     merge_into_statement := :merge_statement_head || :insert_dml || ')' || '\n' || 'values(' || :values_dml || ');';
     
     execute immediate merge_into_statement;
+
+    query_id varchar default '';
+
+    end_time timestamp_tz;
+    processing_time time;
+    procedure_step_result varchar default '';
+    procedure_run_report varchar default '';
+    return_statement varchar default '';
+
+    -- Exception handling variables
+    sql_error_message varchar default '';
+    exception_message variant;
+
+
+
     
-    return (select array_agg(object_construct(*)) from table(result_scan(last_query_id())));
     
-end;
+    procedure_step_result := (select array_agg(object_construct(*)) from table(result_scan(last_query_id())));
+
+    process_end_time := current_timestamp();
+    
+    return_statement := 'Success -- transform_silver.loan_monthly_merge_into_target_gold() complete. ' ||
+                            'Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: '|| :run_id;
 
 
+insert into admin_schema.loan_monthly_audit_history_table ()
+            
+INSERT INTO GENERAL_HOSPITAL_PATIENTS.ADMIN_DAILY_INGEST_REPORTS (FILE_NAME, DAILY_INGEST_RESULTS, EXCEPTION_SUMMARY)
+VALUES (:file_, :procedure_run_report, :sql_error_message);
 
+                    
+    return return_statement;
 
-    RETURN 'SUCCESS -- LOAD_DATA_FROM_FILES() procedure complete.  Check the logs at GENERAL_HOSPITAL_PATIENTS.ADMIN_DAILY_INGEST_REPORTS';
-
-    EXCEPTION
-        WHEN OTHER THEN
-            sql_error_message := SQLERRM;
-            procedure_run_report := procedure_run_report || '\t'   || '--General failure of LOAD_DATA_FROM_FILES() procedure: ' || sql_error_message || '\n'
+exception 
+    when other then
+        process_end_time := current_timestamp();
+        query_id varchar default '';
+            exception_message variant;
+        sql_error_message := sqlerrm;
+        procedure_step_result := || '\t'   || '--General failure of LOAD_DATA_FROM_FILES() procedure: ' || sql_error_message || '\n'
                                                          || '\t\t' || '--Procedure will terminate.' || '\n\n'
                                                          || '...End daily ingestion of patient data for files.' || '\n'
                                                          || 'Success: FALSE';
-            INSERT INTO GENERAL_HOSPITAL_PATIENTS.ADMIN_DAILY_INGEST_REPORTS (FILE_NAME, DAILY_INGEST_RESULTS, EXCEPTION_SUMMARY)
-                VALUES (:file_, :procedure_run_report, :sql_error_message);
+        
+        end_time timestamp_tz;
+    processing_time time;
+    
+        
+        procedure_run_report := :procedure_run_report 
 
-            RETURN 'ERROR -- LOAD_DATA_FROM_FILES() procedure did not complete.  Check the logs at GENERAL_HOSPITAL_PATIENTS.ADMIN_DAILY_INGEST_REPORTS'
-                    || ' for file-specific reports';
+        return_statement := 'Failure -- transform_silver.loan_monthly_merge_into_target_gold() did not complete. ' ||
+                                'Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: '|| :run_id;
+
+        return return_statement;
+        
+
+insert into admin_schema.loan_monthly_audit_history_table ()
+
+INSERT INTO GENERAL_HOSPITAL_PATIENTS.ADMIN_DAILY_INGEST_REPORTS (FILE_NAME, DAILY_INGEST_RESULTS, EXCEPTION_SUMMARY)
+VALUES (:file_, :procedure_run_report, :sql_error_message);
+    
+end;
 
 $$;
 
 
+create table if not exists admin_schema.loan_monthly_audit_history_table (
+    run_id varchar default uuid_string(),
+    start_time timestamp_tz default current_timestamp(), 
+    end_time timestamp_tz,
+    processing_time time,
+    procedure_run_report varchar,
+    exception_messages variant
+    );
