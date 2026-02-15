@@ -533,3 +533,12 @@ select * from target_gold.target_loan_monthly
 order by servicer_name, updated_at, loan_id;
 
 
+    -- Wrap everything in a procedure
+        -- Check for the new files via query
+        -- Check for the existence of tables
+        -- Add the result step logging
+    -- Create the logging table
+        -- The timestamp is the run id
+    -- Create a task dag showing workflow
+
+

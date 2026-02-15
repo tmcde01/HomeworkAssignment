@@ -2,14 +2,6 @@ use database homework_assignment;
 use schema transform_silver;
 
 
-    -- Wrap everything in a procedure
-        -- Check for the new files via query
-        -- Check for the existence of tables
-        -- Add the result step logging
-    -- Create the logging table
-        -- The timestamp is the run id
-    -- Create a task dag showing workflow
-
 
 create or replace view transform_silver.vw_loan_monthly_clean as (
 -- THIS IS OUR INITIAL TABLE SCAN IN OUR CTE CASCADE.  WE COULD FILTER WITH A WHERE CLAUSE HERE, BUT FOR
