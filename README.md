@@ -27,7 +27,7 @@ Link:
 
   This is a huge topic, so I did some research.  Here is what I came up with:
 
-  -- Warehouse and file sizing depends heavily on the process step and use case. For COPY INTO operations, while larger warehouses can ingest massive files faster, every warehouse size doubles credit consumption, and there's a 60-second
+  - Warehouse and file sizing depends heavily on the process step and use case. For COPY INTO operations, while larger warehouses can ingest massive files faster, every warehouse size doubles credit consumption, and there's a 60-second
      minimum billing window. For batch ingestion where latency isn't critical, I might use a Small warehouse and ingest slowly rather than paying for a Large warehouse that sits idle most of the time.
 
   -- For file sizing, I'd compress files (gzip) and aim for 100-500 MB compressed files - large enough for Snowflake's automatic chunking and parallelization (which kicks in at 100MB+) but not so large they create stragglers.
