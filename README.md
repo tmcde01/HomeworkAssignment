@@ -54,6 +54,7 @@ Link:
   - GZ Versions of the csv files: For each of the csv's, you want to use the .gz version with the Snowflake project.
   - database_explorer.md.  This is a screenshot of the HOMEWORK_ASSIGNMENT database showing object locations dependencies.
   - task_dag.md.  This is a screenshot of a snowflake task dag showing procedure dependencies.
+  - loan_monthly_audit_history_table_printout.md  This is a readout from our logging table for one of our procedure runs.  It includes a screenshot and printed text.
 
 ### Main .sql Files and Description
   - database_object_creation.sql:  This file will stand up a generic database with our bronze, silver, and gold schemas.  An admin schema with control tables is included.  Also included are stages, file formats, and tasks, all in their relevant schema.  Comments are included with each object create statement.  Because it uses scripting vs. static typing, it is portable and composable and can be used to create any similar db.  
