@@ -39,13 +39,16 @@ create schema if not exists identifier($target_schema);
 
 use schema identifier($admin_schema);
 
--- CREATE THE LOGGING TABLE. THIS WILL BE STATICALLY TYPED
--- drop table admin_schema.
-
-LOAD_HISTORY (audit table)
-•
-Capture run_id, start/end time, file_name, rows_parsed, rows_loaded, errors_seen,
-status, error_message
+-- CREATE THE LOGGING TABLE. THIS WILL BE STATICALLY TYPED.  A COPY OF THE PRINTOUT WILL BE PROVIDED IN THE GIT REPO
+-- drop table admin_schema.loan_monthly_audit_history_table 
+create table if not exists admin_schema.loan_monthly_audit_history_table (
+    run_id varchar default uuid_string(),
+    start_time timestamp_tz default current_timestamp(), 
+    end_time timestamp_tz,
+    processing_time time,
+    procedure_run_report varchar,
+    exception_messages variant
+    );
 
 
 -- CREATE A TEST STAGE, FILES WILL BE MANUALLY LOADED
@@ -403,7 +406,6 @@ use schema identifier($target_schema);
 -- To initiate the automated file ingest process, run all in the task_dag.sql worksheet. 
 
 
-    -- Create the logging table
     -- Create and refine your procedures
         -- Include a check for new file step
         -- Include a check for file schema changes step
