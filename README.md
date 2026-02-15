@@ -28,18 +28,18 @@ Link:
   This is a huge topic, so I did some research.  Here is what I came up with:
 
   - Warehouse and file sizing depends heavily on the process step and use case. For COPY INTO operations, while larger warehouses can ingest massive files faster, every warehouse size doubles credit consumption, and there's a 60-second
-     minimum billing window. For batch ingestion where latency isn't critical, I might use a Small warehouse and ingest slowly rather than paying for a Large warehouse that sits idle most of the time.
+    minimum billing window. For batch ingestion where latency isn't critical, I might use a Small warehouse and ingest slowly rather than paying for a Large warehouse that sits idle most of the time.
 
-  -- For file sizing, I'd compress files (gzip) and aim for 100-500 MB compressed files - large enough for Snowflake's automatic chunking and parallelization (which kicks in at 100MB+) but not so large they create stragglers.
+  - For file sizing, I'd compress files (gzip) and aim for 100-500 MB compressed files - large enough for Snowflake's automatic chunking and parallelization (which kicks in at 100MB+) but not so large they create stragglers.
 
-  -- For continuous micro-batch loading from external stages, Snowpipe with serverless compute is ideal - it auto-scales, charges per-second of actual processing, and uses AUTO_INGEST to trigger on file arrival.
+  - For continuous micro-batch loading from external stages, Snowpipe with serverless compute is ideal - it auto-scales, charges per-second of actual processing, and uses AUTO_INGEST to trigger on file arrival.
 
-  -- For internal stages or scheduled workflows, serverless tasks follow similar cost principles.
+  - For internal stages or scheduled workflows, serverless tasks follow similar cost principles.
 
-  -- Conversely, for user-facing queries against complex views, I'd size up the warehouse appropriately (Medium/Large) to ensure fast response times, since user experience matters and the warehouse can optimize complex queries better with
-     more resources.
+  - Conversely, for user-facing queries against complex views, I'd size up the warehouse appropriately (Medium/Large) to ensure fast response times, since user experience matters and the warehouse can optimize complex queries better with
+    more resources.
 
-  -- Key principles:
+  - Key principles:
 
       (1) Start with X-Small/Small warehouses and scale only when performance testing shows clear benefit
 
