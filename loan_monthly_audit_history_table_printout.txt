@@ -1,0 +1,1 @@
+This is an exact copy of one of the records from our admin_schema.loan_monthly_audit_history_table.  It satisfies the requirements using a condensed number of columns.
