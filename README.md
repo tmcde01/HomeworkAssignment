@@ -34,6 +34,7 @@ Link:
  - postgres_hc_connection_config.py:  The local server to PostgreSQL connector .py module, included as a module in postgres_files_to_snowflake.py below
  - snowflake_hc_connection_config.py: The local server to Snowflake connector .py module, included as a module in postgres_files_to_snowflake.py below
  - postgres_files_to_snowflake.py:  The main .py script that will transfer files from PostgreSQL to snowflake, intended to simulate a daily file drop from a vendor to an AWS External Stage.  (Here we use internal stages as a proxy)
+ - transform_silver_logic.sql:  This is a separate worksheet showing a CTE cascade used for the data transform logic needed to clean up the records.
 
 ### Procedure Notes
 - ingest_loan_monthly();  This base procedure will scan our stage at pre-determined intervals for target files and ingest and process new loan_monthly files in accordance with our requirements.  Example: "call ingest_loan_monthly();"  It is explicitly coded and well-commented.  Note however the call for this procedure is automated via task and stream.  
