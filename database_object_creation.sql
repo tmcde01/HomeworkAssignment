@@ -66,7 +66,7 @@ create file format if not exists admin_schema.infer_schema_pipe_delimited
     empty_field_as_null = true
     compression = 'gzip';
 
--- YOU WILL NEED TO UPLOAD THE TESTING CSV FILES HERE
+STOP HERE:  YOU WILL NEED TO UPLOAD THE TESTING CSV FILE
 
 -- CREATE A CONTROL TABLE TO BASELINE THE FILE SCHEMA 
 create table if not exists admin_schema.loan_monthly_expected_file_schema  as (
@@ -87,7 +87,6 @@ create table if not exists admin_schema.loan_monthly_expected_file_schema  as (
 select * from admin_schema.loan_monthly_expected_file_schema;
  
 
-
 -- WORK WITHIN RAW_BRONZE SCHEMA
 -------------------------------------------------------
 use schema identifier($raw_schema);
@@ -101,6 +100,10 @@ directory = (
     -- auto_refresh = true  -- Only works for external stages
     );
 
+list @raw_bronze.daily_files;
+alter stage raw_bronze.daily_files refresh;
+select * from directory(@raw_bronze.daily_files);
+remove @raw_bronze.daily_files;
 
 -- HERE WE WILL CREATE A STREAM, THOUGH WE WILL NOT USE IT UNTIL WE PUT EVERYTHING TO A PROCEDURE
 -- -- drop stream raw_bronze.inbound_loan_monthly_files_stream;
@@ -109,6 +112,7 @@ create stream if not exists raw_bronze.inbound_loan_monthly_files_stream
 -- show streams in schema raw_bronze;
 
 select * from raw_bronze.inbound_loan_monthly_files_stream;
+select * from admin_schema.loan_monthly_trigger_reset_temp_table;
     
 
 -- COPY SOME FILES INTO IT
@@ -133,7 +137,6 @@ create file format if not exists raw_bronze.ingest_data_pipe_delimited
     empty_field_as_null = true
     trim_space = true
     compression = 'gzip';
-
 
 
 -- USE THE CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR LANDING TABLE
@@ -191,97 +194,6 @@ begin
     return (select * from table(result_scan(last_query_id())));
     
 end;
-
-
--- NOW USE THE SAME CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR COPY INTO STATEMENT
--- drop table raw_bronze.raw_loan_monthly;
-
--- USE THE CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR LANDING TABLE
-declare
-    db varchar default 'HOMEWORK_ASSIGNMENT';
-    admin_schema varchar default 'ADMIN_SCHEMA';
-    control_table varchar default 'LOAN_MONTHLY_EXPECTED_FILE_SCHEMA';
-    raw_schema varchar default 'RAW_BRONZE';
-    table_name varchar default 'RAW_LOAN_MONTHLY';
-
-    file_stage varchar default :raw_schema || '.' || 'DAILY_FILES';
-    file_format varchar default :raw_schema || '.' || 'INGEST_DATA_PIPE_DELIMITED';
-    -- FOR TESTING WE WILL MANIPULATE THE FILE PATTERN DATE:
-    -- file_pattern_date varchar default to_varchar(dateadd('MONTH', -1, current_date()), 'YYYYMM');
-    file_pattern_date varchar default '(202601|202602|202603)';
-    file_pattern varchar default 'LOAN_MONTHLY' || '_' || :file_pattern_date || '.csv.gz';
-    copy_into_head varchar default '';
-    copy_into_tail varchar default '';
-
-    get_table_ddl varchar;
-    table_ddl resultset;
-    column_reference varchar default '';
-    column_datatype varchar default '';
-    column_name varchar default '';
-    column_dml varchar default '';
-    copy_into_body varchar default '';
-    
-    copy_into_statement varchar; 
-
-begin
-
-    copy_into_head := 'copy into ' || :raw_schema || '.' || :table_name || '
-                            from (select 
-                                        metadata$start_scan_time as loaded_at,
-                                        metadata$filename as file_name,
-                                        to_varchar(to_date(regexp_substr(metadata$filename, ''^.*LOAN_MONTHLY_(\\\\d{6})\\\\.csv\\\\.gz$'', 1, 1, ''e'', 1), 
-                                            ''YYYYMM''), ''YYYY-MM'') as file_month,
-                                        md5(loaded_at || file_name) as file_unique_key,
-                                        metadata$file_row_number as file_row_number,
-                                        md5(loaded_at || file_name || file_row_number) as file_record_unique_key,' || '\n';
-    -- return copy_into_head;
-
-
-
--- LOAN_MONTHLY_202602.csv.gz
--- select to_varchar(to_date(regexp_substr('LOAN_MONTHLY_202602.csv.gz', '^.*LOAN_MONTHLY_(\\d{6})\\.csv\\.gz$', 1, 1, 'e', 1), 
---                                             'YYYYMM'), 'YYYY-MM') as file_month,
-
-    
-    copy_into_tail := 'from @' || :file_stage || ')
-                       pattern = ''' || :file_pattern || '''
-                       file_format = ' || :file_format || ';';
-    -- return copy_into_tail;
-                
-
-    get_table_ddl := 'select order_id, type, column_name from ' || :admin_schema || '.' || :control_table || ' order by order_id;';
-    table_ddl := (execute immediate get_table_ddl);
-
-    for record in table_ddl do
-        column_reference := '$' || to_varchar(record.order_id + 1);
-        -- FORCE EVERYTHING TO VARCHAR
-        column_datatype := case when record.type = 'TEXT' 
-                                    then 'VARCHAR'
-                                when regexp_like(record.type, '^NUMBER\\(\\d+, \\d+\\)$') 
-                                    then 'VARCHAR'
-                                    -- then 'NUMBER(38, ' || regexp_substr(record.type, '^NUMBER\\(\\d+, (\\d+)\\)$', 1, 1, 'e', 1) || ')'
-                                when record.type = 'TIMESTAMP_NTZ' 
-                                    then 'VARCHAR'
-                           else 'VARCHAR'
-                           end;
-        column_name := '"' || record.column_name || '"';
-        column_dml := :column_reference || '::' || :column_datatype || ' as ' || :column_name || ',' || '\n';
-        copy_into_body := :copy_into_body || :column_dml;
-    end for;
-
-    copy_into_body := rtrim(copy_into_body, ',\n');
-    -- return copy_into_body;
-
-    copy_into_statement := :copy_into_head || :copy_into_body || :copy_into_tail;
-    -- return copy_into_statement;
-    execute immediate copy_into_statement;
-    
-    return (select array_agg(object_construct(*)) from table(result_scan(last_query_id())));
-
-end;
-
-select * from HOMEWORK_ASSIGNMENT.RAW_BRONZE.RAW_LOAN_MONTHLY;
-
 
 
 -- WORK WITHIN TRANSFORM_SILVER SCHEMA
@@ -443,102 +355,16 @@ begin
     
 end;
 
--- LASTLY WE CAN DO OUR MERGE
-
-declare
-    db varchar default 'HOMEWORK_ASSIGNMENT';
-    admin_schema varchar default 'ADMIN_SCHEMA';
-    control_table varchar default 'LOAN_MONTHLY_EXPECTED_FILE_SCHEMA';
-    information_schema varchar default 'INFORMATION_SCHEMA';
-    is_table varchar default 'COLUMNS';
-    source_schema varchar default 'TRANSFORM_SILVER';
-    source_table varchar default 'VW_LOAN_MONTHLY_CLEAN';
-    target_schema varchar default 'TARGET_GOLD';
-    target_table varchar default 'TARGET_LOAN_MONTHLY';
-    match_key varchar default 'FILE_RECORD_UNIQUE_KEY';
-    merge_statement_head varchar default '';
-    column_metadata_query varchar default '';
-    column_metadata resultset;
-    source_column_name varchar default '';
-    source_column_datatype_transform varchar default '';
-    target_column_name varchar default '';
-    source_column_dml varchar default '';
-    insert_dml varchar default '';
-    target_column_dml varchar default '';
-    values_dml varchar default '';
-    merge_into_statement default '';
-    
-begin
-
-    execute immediate ('use database ' || :db);
-    execute immediate ('use schema ' || :source_schema);
-
-
-    merge_statement_head := 'merge into ' || :target_schema || '.' || :target_table || ' t 
-                             using (select * from ' || :source_schema || '.' || :source_table || ' ) s
-                             on t.' || :match_key || ' = ' || 's.'|| :match_key || '
-                             when not matched then 
-                             -- WE STILL NEED OUR METADATA
-                                insert(';
-
-    column_metadata_query := 'select 
-                                    isc.column_name as isc_column_name,
-                                    isc.data_type_alias as isc_data_type_alias,
-                                    -- USE THE EXACT SAME TRANSFORM AS WE DID WHEN CREATING THE TARGET_LOAN_MONTHLY TABLE
-                                    iff(act.column_name is not null,
-                                        act.column_name,
-                                        isc.column_name) as act_column_name,
-                                    upper(replace(replace(act_column_name, '' '', ''_''), ''+'', ''and'')) as act_join_column_name,
-                                    act.type as act_type,
-                              from ' || :information_schema || '.' || :is_table || ' isc
-                              left join ' || :admin_schema || '.' || :control_table || ' act
-                                on 
-                                    isc.column_name = act_join_column_name 
-                              where 
-                                    isc.table_schema = ''' || :target_schema || '''
-                                        and
-                                    isc.table_name = ''' || :target_table || '''
-                              order by ordinal_position;';
-    column_metadata := (execute immediate column_metadata_query);
-    -- return table(column_metadata);
-    
-    for record in column_metadata do
-        target_column_name := 't.' || record.isc_column_name;
-        source_column_name := 's.' || '"' || record.act_column_name || '"'; 
-        source_column_datatype_transform := record.isc_data_type_alias;
-        
-        target_column_dml := :target_column_name || ',' || '\n';
-        source_column_dml := :source_column_name || '::' || :source_column_datatype_transform || ',' || '\n';
-        
-        insert_dml := :insert_dml || :target_column_dml;
-        values_dml := :values_dml || :source_column_dml;
-        
-    end for;
-    
-    insert_dml := rtrim(insert_dml, ',\n');
-    values_dml := rtrim(values_dml, ',\n');
-
-
-    merge_into_statement := :merge_statement_head || :insert_dml || ')' || '\n' || 'values(' || :values_dml || ');';
-    
-    execute immediate merge_into_statement;
-    
-    return (select array_agg(object_construct(*)) from table(result_scan(last_query_id())));
-    
-end;
-
--- AND THEN CONFIRM THE RESULT:
 
 select * from target_gold.target_loan_monthly 
 order by servicer_name, updated_at, loan_id;
 
 
-    -- Wrap everything in a procedure
-        -- Check for the new files via query
-        -- Check for the existence of tables
-        -- Add the result step logging
     -- Create the logging table
-        -- The timestamp is the run id
-    -- Create a task dag showing workflow
-
+    -- Create and refine your procedures
+        -- Include exceptions
+        -- Include simple logging    
+    -- Clean up the git repo
+    -- Make a video
+    
 
