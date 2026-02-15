@@ -178,6 +178,8 @@ begin
     get_table_ddl := 'select column_name from ' || :admin_schema || '.' || :control_table || ' order by order_id;';
     table_ddl := (execute immediate get_table_ddl);
 
+    -- HERE WE WILL USE THE ORIGINAL COLUMN NAMES FROM THE FILE WITH DOUBLE-QUOTE NOTATION.
+    -- WE'LL ALSO SET ALL DATATYPES TO VARCHAR FOR DURABILITY
     for record in table_ddl do
         column_name := '"' || record.column_name || '"';
         column_datatype := 'VARCHAR';
@@ -332,6 +334,7 @@ begin
     get_table_ddl := 'select column_name, type from ' || :admin_schema || '.' || :control_table || ' order by order_id;';
     table_ddl := (execute immediate get_table_ddl);
 
+    -- HERE WE WILL USE STANDARD CONVENTIONS FOR COLUMN NAMES, AND SPECIFICALLY PROVIDE DATATYPES
     for record in table_ddl do
         column_name := upper(replace(replace(record.column_name, ' ', '_'), '+', 'and'));
 
@@ -356,8 +359,19 @@ begin
 end;
 
 
+-- CHECK PROCESS OR CALL PROCEDURES
+-------------------------------------------------------
+
+-- That's it, we're done!  
+
+-- To check process output:
 select * from target_gold.target_loan_monthly 
 order by servicer_name, updated_at, loan_id;
+
+-- To trigger procedures manually:
+call transform_silver.loan_monthly_merge_into_target_gold();
+call raw_bronze.loan_monthly_copy_into_raw_bronze();
+
 
 
     -- Create the logging table

@@ -16,6 +16,7 @@ create task if not exists admin_schema.loan_monthly_1_ingest_start
         as 
             select true;
 
+
 -- This is an admin task that resets our ingest process trigger by clearing the stream.  We do this by selecting
 -- from the stream to a disposable temp table.  Here we are also using a warehouse now, even though there is minor
 -- compute involved
