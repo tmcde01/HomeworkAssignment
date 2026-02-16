@@ -40,15 +40,23 @@ create schema if not exists identifier($target_schema);
 use schema identifier($admin_schema);
 
 -- CREATE THE LOGGING TABLE. THIS WILL BE STATICALLY TYPED.  A COPY OF THE PRINTOUT WILL BE PROVIDED IN THE GIT REPO
--- drop table admin_schema.loan_monthly_audit_history_table 
+-- drop table admin_schema.loan_monthly_audit_history_table;
 create table if not exists admin_schema.loan_monthly_audit_history_table (
     run_id varchar default uuid_string(),
     start_time timestamp_tz default current_timestamp(), 
     end_time timestamp_tz,
-    processing_time time,
+    processing_time_HHMMSS time,
     procedure_run_report varchar,
-    exception_messages variant
+    exception_message varchar
     );
+
+insert into admin_schema.loan_monthly_audit_history_table (procedure_run_report)
+    values('Starting LOAN_MONTHLY ingestion process'); 
+
+select object_construct(*) 
+from admin_schema.loan_monthly_audit_history_table
+order by start_time desc
+limit 1;
 
 
 -- CREATE A TEST STAGE, FILES WILL BE MANUALLY LOADED
@@ -414,6 +422,7 @@ use schema identifier($target_schema);
         -- Include a check for file schema changes step
         -- Include exceptions
         -- Include simple logging    
+    -- Test merge failure on datatype
     -- Add procedures above
     -- Run everything
     -- Clean up the git repo
