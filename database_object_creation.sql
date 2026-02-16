@@ -545,8 +545,13 @@ begin
     end if;
 
     -- TO DO:
-        -- create your new exceptions
-        -- add your insert statement for file exception
+        -- Create your new exceptions
+            -- No files
+            -- File failures
+        -- Add your insert statement for file exception
+        -- Repo work 
+            -- Add screenshots
+            -- Remove files
 
 
     files_list := '''' || array_to_string(:files_array_cleaned, ''', ''') || '''';
