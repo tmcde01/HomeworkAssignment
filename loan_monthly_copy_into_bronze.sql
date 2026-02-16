@@ -2,19 +2,15 @@ use database homework_assignment;
 use schema raw_bronze;
 
 -- HERE IS OUR COPY INTO PROCEDURE WE WILL CALL VIA TASK DAG
-
-
-
--- NOW USE THE SAME CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR COPY INTO STATEMENT
--- drop table raw_bronze.raw_loan_monthly;
+-- WE USE THE SAME CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR COPY INTO STATEMENT
 
 
 -- drop procedure raw_bronze.loan_monthly_copy_into_raw_bronze();
--- create procedure if not exists raw_bronze.loan_monthly_copy_into_raw_bronze()
--- returns string
--- language sql
--- as
--- $$
+create procedure if not exists raw_bronze.loan_monthly_copy_into_raw_bronze()
+returns string
+language sql
+as
+$$
 
 declare
     -- Environment variables
@@ -26,12 +22,14 @@ declare
     raw_schema varchar default 'RAW_BRONZE';
     table_name varchar default 'RAW_LOAN_MONTHLY';
     -- These objects are better non-concatenated as well
-    file_stage varchar default :raw_schema || '.' || 'DAILY_FILES';
+    file_stage varchar default '@' || :raw_schema || '.' || 'DAILY_FILES';
     file_format varchar default :raw_schema || '.' || 'INGEST_DATA_PIPE_DELIMITED';
-    -- FOR TESTING WE WILL MANIPULATE THE FILE PATTERN DATE:
+    file_target_table varchar default 'TARGET_GOLD.TARGET_LOAN_MONTHLY';
+    -- INSTEAD OF A FILE LIST LIKE BELOW WE CAN USE A FILE PATTERN:
     -- file_pattern_date varchar default to_varchar(dateadd('MONTH', -1, current_date()), 'YYYYMM');
-    file_pattern_date varchar default '(202601|202602|202603)';
-    file_pattern varchar default 'LOAN_MONTHLY' || '_' || :file_pattern_date || '.csv.gz';
+    -- file_pattern varchar default 'LOAN_MONTHLY' || '_' || :file_pattern_date || '.csv.gz';
+    file_list_query varchar default '';
+    file_list varchar default '';
     
     -- Dynamic DDL/DML variables
     copy_into_head varchar default '';
@@ -44,6 +42,7 @@ declare
     column_dml varchar default '';
     copy_into_body varchar default '';
     copy_into_statement varchar; 
+    copy_into_errors boolean;
 
     -- Process logging variables
     procedure_metadata variant;
@@ -58,6 +57,8 @@ declare
 
     -- Custom copy into exception
     copy_into_failure exception;
+    copy_into_error_message varchar default '';
+    copy_into_history varchar default '';
     -- Other type exception handling variables
     sql_error_message varchar default '';
 
@@ -86,15 +87,11 @@ begin
     procedure_run_report := :procedure_run_report || '\n'|| '  --Beginning copy into step';
 
 
--- TO DO:  
-    -- check for new files
-    -- parse file row ingestion
-    -- add exception.
-
-    if (rows_loaded = 0) then
-        raise copy_into_failure;
-    end if;
-
+    file_list := (select listagg('''' || d.relative_path || '''', ', ') within group (order by d.relative_path)
+                  from directory(@raw_bronze.daily_files) d
+                  left join identifier(:file_target_table) t 
+                    on d.relative_path = t.file_name
+                  where t.file_name is null);
 
     copy_into_head := 'copy into ' || :raw_schema || '.' || :table_name || '
                             from (select 
@@ -107,8 +104,8 @@ begin
                                         md5(loaded_at || file_name || file_row_number) as file_record_unique_key,' || '\n';
     -- return copy_into_head;
     
-    copy_into_tail := 'from @' || :file_stage || ')
-                       pattern = ''' || :file_pattern || '''
+    copy_into_tail := 'from ' || :file_stage || ')
+                       files = (' || :file_list || ')
                        file_format = ' || :file_format || ';';
     -- return copy_into_tail;
                 
@@ -141,6 +138,17 @@ begin
 
     query_id := last_query_id();
     procedure_step_result := (select array_agg(object_construct(*)) from table(result_scan(:query_id)));
+
+    -- HERE IS OUR CHECK AND EXCEPTION HANDLING FOR COPY INTO ERRORS
+    copy_into_errors := (select count(*) > 0
+                         from table(flatten(parse_json(:procedure_step_result)))
+                         where to_varchar(value:status) != 'LOADED');
+
+    if (copy_into_errors = true) then 
+        raise copy_into_failure;
+    else null;
+    end if;
+    
     procedure_run_report := procedure_run_report || '\n' || '    ----Query id: ' || :query_id || '; Result: ' ||:procedure_step_result;
     
     return_statement := '  --Success:  raw_bronze.loan_monthly_copy_into_raw_bronze() complete. ' || '\n' ||
@@ -158,16 +166,18 @@ exception
 
     when copy_into_failure then
         query_id := last_query_id();
-        sql_error_message := sqlerrm;
+        copy_into_history := procedure_step_result;
+        copy_into_error_message := 'Copy into failure: not all rows successfully loaded';
         end_time := current_timestamp();
         processing_time := timeadd(second, timestampdiff(second, start_time, end_time), to_time('00:00:00'));
         
-        procedure_step_result := '    ----Procedure exception: ' || :sql_error_message || '\n' ||
+        procedure_step_result := '    ----Procedure exception: ' || :copy_into_error_message || '\n' ||
                                  '    ----Procedure will terminate.';
         procedure_run_report := :procedure_run_report || '\n' || :procedure_step_result;
 
         return_statement := '  --Failure: raw_bronze.loan_monthly_copy_into_raw_bronze() did not complete. ' || '\n' ||
-                            '    ----Exception_message: ' || :sql_error_message || '\n' ||
+                            '    ----Exception_message: ' || :copy_into_error_message || '\n' ||
+                            '    ----Copy into history: ' || :copy_into_history || '\n' ||
                             '  --LOAN_MONTHLY ingestion process terminated' || '\n' ||
                             'Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: '|| :run_id;
         procedure_run_report := :procedure_run_report || '\n' || :return_statement;
@@ -176,7 +186,7 @@ exception
         set end_time = :end_time,
             processing_time_HHMMSS = :processing_time,
             procedure_run_report = :procedure_run_report,
-            exception_message = :sql_error_message
+            exception_message = :copy_into_error_message
         where run_id = :run_id;
 
         return return_statement;
@@ -209,21 +219,4 @@ exception
 end;
 
 $$;
-
-$$
-
-
-
-select * from admin_schema.loan_monthly_audit_history_table order by start_time desc;
-
-
-
--- create table if not exists admin_schema.loan_monthly_audit_history_table (
---     run_id varchar default uuid_string(),
---     start_time timestamp_tz default current_timestamp(), 
---     end_time timestamp_tz,
---     processing_time time,
---     procedure_run_report varchar,
---     exception_messages variant
---     );
 
