@@ -56,10 +56,6 @@ declare
     
 begin
 
-    -- Set environment
-    execute immediate ('use database ' || :db);
-    execute immediate ('use schema ' || :source_schema);
-
     -- Retrieve logging metadata;
     select object_construct(*) into procedure_metadata
     from identifier(:logging_table)
@@ -173,5 +169,4 @@ end;
 
 $$;
 
-select * from admin_schema.loan_monthly_audit_history_table order by start_time desc;
 

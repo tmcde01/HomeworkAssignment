@@ -90,6 +90,12 @@ alter task admin_schema.loan_monthly_2_trigger_reset suspend;
 alter task admin_schema.loan_monthly_3_copy_into_raw_bronze suspend;
 alter task admin_schema.loan_monthly_4_merge_into_target_gold suspend;
 
+-- drop task admin_schema.loan_monthly_0_refresh_stage;
+-- drop task admin_schema.loan_monthly_1_ingest_start;
+-- drop task admin_schema.loan_monthly_2_trigger_reset;
+-- drop task admin_schema.loan_monthly_3_copy_into_raw_bronze;
+-- drop task admin_schema.loan_monthly_4_merge_into_target_gold;
+
 
 -- And that's it!  We could add other tasks to do things like clean up our landing layer, run data quality checks,
 -- etc. The only downside to tasks is thay they do not provide the same query history or return statements as 

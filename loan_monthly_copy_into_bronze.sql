@@ -4,7 +4,6 @@ use schema raw_bronze;
 -- HERE IS OUR COPY INTO PROCEDURE WE WILL CALL VIA TASK DAG
 -- WE USE THE SAME CONTROL TABLE WITH AN ANONYMOUS BLOCK TO DYNAMICALLY CREATE OUR COPY INTO STATEMENT
 
-
 -- drop procedure raw_bronze.loan_monthly_copy_into_raw_bronze();
 create procedure if not exists raw_bronze.loan_monthly_copy_into_raw_bronze()
 returns string
@@ -63,10 +62,6 @@ declare
     sql_error_message varchar default '';
 
 begin
-
--- Set environment
-    execute immediate ('use database ' || :db);
-    execute immediate ('use schema ' || :raw_schema);
 
     -- Generate logging metadata;
     insert into identifier(:logging_table) (procedure_run_report)
