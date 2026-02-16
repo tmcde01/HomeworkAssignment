@@ -75,7 +75,7 @@ Link:
    -  Step 1: Using the file "database_object_creation.sql", run all.
    -  Step 2: The scripts will stop at line 84 with the error message "STOP_HERE:  You will need to upload the test file 'LOAN_MONTHLY_202601.csv.gz' to the stage at admin_schema.testing_files".  Do that, then comment out the line.
    -  Step 3: Hit "Run all" again. The object creation commands are constructed to prevent overwriting, i.e., "CREATE OBJECT IF NOT EXISTS"
-   -  Step 4: You have now created all the necessary objects and procedures
+   -  Step 4: When you see the return message: "Function LOAN_MONTHLY_MERGE_INTO_TARGET_GOLD successfully created." You have created all the necessary objects and procedures
    -  Step 5: Uncomment the last section "CHECK PROCESS OR CALL PROCEDURES". Follow the instructions to load files, run the process, and check the output.
    -  Step 6: (Optional)  If you like, follow the instructions for creating / restarting the task dag.  Then monitor the ingest/ETL procedure as you like.  Again however, you will need to load files to the raw_bronze.daily_files stage and then ensure it gets refreshed to trigger the process. If the process has run previously you will need to add new files with new filenames, because previously ingested files will be skipped. 
  - Object dependency diagrams.  See the database_explorer.md and task_dag.md files in the "Project Artifact File List and Descriptions" section.
