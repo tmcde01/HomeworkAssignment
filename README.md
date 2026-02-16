@@ -14,12 +14,17 @@ A short video link demonstrating the assignment work product and covering the to
 
 - How do you handle schema evolution if the file adds new columns?
 
-  Create tables with schema evolution enabled.  Still, two approaches are suggested:  stop the process, trigger an alert, and alter the table manually for extra control and awareness; or script in the addition of the new column. (It is possible to make all the necessary DDL/DML adjustments downstream with dynamic scripting). Either way, for the new columns there will be null values for the old files, and new values for the files.  In the CopyIntoProcedure.sql file there is a check to ensure incoming files match the expected schema.
+  Create tables with schema evolution enabled.  Still, two approaches are suggested:  stop the process, trigger an alert, and alter the table manually for extra control and awareness; or script in the addition of the new column. (It is possible to make all the necessary DDL/DML adjustments downstream with dynamic scripting). Either way, for the new columns there will be null values for the old files, and new values for the files.  In the CopyIntoProcedure.sql file there is a check to ensure incoming files match the expected schema:
+
+  <img width="1555" height="888" alt="image" src="https://github.com/user-attachments/assets/558204f0-ffa7-42a3-96e6-d596771093c4" />
+
 
 - What would you do if COPY INTO partially loads a file and then fails?
 
   This depends on what my team and organization desires:  there could be a preference to skip the bad records and provide all available data, or to stop the process to investigate further.  This scenario is also included in the CopyIntoProcedure.sql.  Also please see the Successful Run with Skipped Files LOAN MONTHLY.txt log file.
-  
+
+  <img width="1463" height="515" alt="image" src="https://github.com/user-attachments/assets/fec100c4-8423-4472-ae9a-29c085c78c27" />
+
 - What warehouse sizing / file sizing guidance would you give for performance?
 
   This is a huge topic, so I did some research.  Here is what I came up with:
