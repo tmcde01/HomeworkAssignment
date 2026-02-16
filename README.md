@@ -51,6 +51,8 @@ A short video link demonstrating the assignment work product and covering the to
 ### Project Artifact File List and Descriptions
   - Assignment.pdf:  This is the original assignment, reviewed and formated to help guide development work.  It shows a thought process behind the reorganization of requirements to support an ordered workflow.
   - LOAN_MONTHLY_202*.csv: These are all testing csv's I created to stand up the process and do testing.
+  - *LOAN MONTHLY.txt:  These are all printouts from the logging table covering various testing scenarios.  The file name describes the scenario.
+  - *.jpg.  These are all screenshots of different parts of the process.  The file name describes the process part.
 
 ### Main .sql Files and Description
   - CopyIntoProcedure.sql:  This is the raw anonymous block used for the Copy Into procedure in the RAW_BRONZE schema
