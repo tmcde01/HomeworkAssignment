@@ -10,20 +10,8 @@ A short video link demonstrating the assignment work product and covering the to
   Please see CopyIntoProcedure.sql file for a complete review of the file ingest process.  For this specific question the following query is used.  It compares files in the gold layer
   to files in the stage:
 
-  files_array := (select array_agg(d.relative_path) within group (order by d.relative_path) 
-                    from directory(@raw_bronze.daily_files) d 
-                    left join identifier(:file_target_table) t 
-                        on d.relative_path = t.file_name 
-                    where t.file_name is null);
-    query_id := last_query_id();
-    procedure_step_result := (select array_agg(object_construct(*)) from table(result_scan(:query_id)));
+  <img width="1083" height="346" alt="image" src="https://github.com/user-attachments/assets/4075ac6a-857c-4355-b7fa-a7e178d51dae" />
 
-    if (array_size(files_array) = 0) then
-        files_array_string := array_to_string(:files_array, ', ');
-        raise no_daily_files;
-    else null;
-    end if;
-  
 - How do you handle schema evolution if the file adds new columns?
 
   Create tables with schema evolution enabled.  Still, two approaches are suggested:  stop the process, trigger an alert, and alter the table manually for extra control and awareness; or script in the addition of the new column. (It is possible to make all the necessary DDL/DML adjustments downstream with dynamic scripting). Either way, for the new columns there will be null values for the old files, and new values for the files.  In the CopyIntoProcedure.sql file there is a check to ensure incoming files match the expected schema.
