@@ -57,19 +57,11 @@ A short video link demonstrating the assignment work product and covering the to
 
 ### Project Artifact File List and Descriptions
   - Assignment.pdf:  This is the original assignment, reviewed and formated to help guide development work.  It shows a thought process behind the reorganization of requirements to support an ordered workflow.
-  - LOAN_MONTHLY_202601.csv:  This is a csv representing the first month's initial load for testing.  Columns and datatypes from the Assignment.pdf were used.  Additionally values were deliberately made difficult and non-uniform because often we cannot control vendor-supplied data.  A testing_note column has been added to track our test cases:  these should all read "original record"
-  - LOAN_MONTHLY_202602.csv:  This is a second additional csv representing the second month's incremental load.  Records have been adjusted to reflect the test cases from the assignment instructions.  These are described in the testing_notes column, such as:  new records, monthly updates with our without changes, duplicate records with similar or different timestamps, and secondary or additional records with updated timestamps.
-  - LOAN_MONTHLY_202603.csv:  This is a third additional csv representing the third months's incremental load.  Records have been adjusted to reflect the data quality test cases from the assignment instructions.  These are also described in the testing notes column, such as: low row count; null check on loan_id, null check on reporting_month, and null check on loan_id + reporting_month (concating nulls to generate the business key is expected to fail); balance check for a negative value; interest rate check < 0; and interest rate check > 25
-  - GZ Versions of the csv files: For each of the csv's, you want to use the .gz version with the Snowflake project.
-  - database_explorer.md.  This is a screenshot of the HOMEWORK_ASSIGNMENT database showing object locations dependencies.
-  - task_dag.md.  This is a screenshot of a snowflake task dag showing procedure dependencies.
-  - loan_monthly_audit_history_table_printout.md  This is a readout from our logging table for one of our procedure runs.  It includes a screenshot and printed text.
+  - LOAN_MONTHLY_202*.csv:  These are all testing csv's I created to stand up the process.
 
 ### Main .sql Files and Description
-  - database_object_creation.sql:  This file will stand up a generic database with our bronze, silver, and gold schemas.  An admin schema with control tables is included.  Also included are stages, file formats, and tasks, all in their relevant schema.  Comments are included with each object create statement.  Because it uses scripting vs. static typing, it is portable and composable and can be used to create any similar db.  
-  - loan_monthly_copy_into_bronze.sql: This is our copy into raw/bronze procedure.  It also uses dynamic scripting so it is also composable and portable.  (Note it is included in database_object_creation.sql as part of our run book) 
-  - loan_monthly_merge_into_gold.sql:  This is our merge into target/gold procedure.  Again, dynamically scripted. (Note also it is included in database_object_creation.sql as part of our run book)
-  - Note:  Because we use a view for the transforms as the transform/silver layer, and views are stored queries, we don't have a procedure for this.  The view creation logic is found in the database_object_creation.sql file.  But also see the transform_silver_logic.sql file in the section below, which is provided for review and discussion.
+  - CopyIntoProcedure.sql:  This is the raw anonymous block used for the Copy Into procedure.
+  - 
 
 ### Additional .sql / .py Files and Description
   - transform_silver_logic.sql:  This is a separate worksheet showing a CTE cascade used for the data transform logic needed to clean up the records.  It can be reviewed individually for simplicity.
