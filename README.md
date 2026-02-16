@@ -73,7 +73,7 @@ Link:
 ### Bonus Items
  - Run book: 
    -  Step 1: Using the file "database_object_creation.sql", run all.
-   -  Step 2: The scripts will stop at line 69 with the error message "STOP HERE:  You will need to upload the test file 'LOAN_MONTHLY_202601.csv.gz' to the stage at admin_schema.testing_files".  Do that.  
+   -  Step 2: The scripts will stop at line 84 with the error message "STOP_HERE:  You will need to upload the test file 'LOAN_MONTHLY_202601.csv.gz' to the stage at admin_schema.testing_files".  Do that.  
    -  Step 3: Hit "Run all" again. The object creation commands are constructed to prevent overwriting, i.e., "CREATE OBJECT IF NOT EXISTS"
    -  Step 4: You have now created all the necessary objects and procedures
    -  Step 5: Uncomment the last section "CHECK PROCESS OR CALL PROCEDURES". Follow the instructions to load files, run the process, and check the output.
