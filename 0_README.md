@@ -49,16 +49,15 @@ A short video link demonstrating the assignment work product and covering the to
 
       (5) Monitor query performance and credit consumption to find the optimal balance.
 
-### Project Artifact File List and Descriptions
-  - Assignment.pdf:  This is the original assignment, reviewed and formated to help guide development work.  It shows a thought process behind the reorganization of requirements to support an ordered workflow.
-  - LOAN_MONTHLY_202*.csv: These are all testing csv's I created to stand up the process and do testing.
-  - *LOAN MONTHLY.txt:  These are all printouts from the logging table covering various testing scenarios.  The file name describes the scenario.
-  - *.jpg.  These are all screenshots of different parts of the process.  The file name describes the process part.
+### Project Files and Descriptions
+  - N *.jpg.  These are all screenshots of different parts of the process.  The file name describes the process part.
+  - ADMIN Assignment.pdf:  This is the original assignment, reviewed and formated to help guide development work.  It shows a thought process behind the reorganization of requirements
+    to support an ordered workflow.
+  - LOG *LOAN MONTHLY.txt:  These are all printouts from the logging table covering various testing scenarios.  The file name describes the scenario.
+  - SQL CopyIntoProcedure.sql:  This is the raw anonymous block used for the Copy Into procedure in the RAW_BRONZE schema
+  - SQL TransformSilverLogic.sql: This is the CTE cascade used for creating the Loan Monthly Clean View (VW_LOAN_MONTHLY_CLEAN) in the TRANSFORM_SILVER schema
+  - TEST LOAN_MONTHLY_202*.csv: These are all testing csv's I created to stand up the process and do testing.
 
-### Main .sql Files and Description
-  - CopyIntoProcedure.sql:  This is the raw anonymous block used for the Copy Into procedure in the RAW_BRONZE schema
-  - TransformSilverLogic.sql: This is the CTE cascade used for creating the Loan Monthly Clean View (VW_LOAN_MONTHLY_CLEAN) in the TRANSFORM_SILVER schema
- 
 ### Bonus Items
  - Run book: This is covered in the video.  Please see the link.
  - Object dependency diagrams. Please see the .jpg files in the Project Artifact File List and Descriptions sections for views of the database objects and task dags.
