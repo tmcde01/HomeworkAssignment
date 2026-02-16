@@ -47,7 +47,7 @@ create table if not exists admin_schema.loan_monthly_audit_history_table (
     end_time timestamp_tz,
     processing_time_HHMMSS time,
     procedure_run_report varchar,
-    exception_message varchar
+    exception_messages varchar
     );
 
 insert into admin_schema.loan_monthly_audit_history_table (procedure_run_report)
@@ -385,16 +385,17 @@ end;
 use schema identifier($raw_schema);
 
 -- drop procedure raw_bronze.loan_monthly_copy_into_raw_bronze();
-create procedure if not exists raw_bronze.loan_monthly_copy_into_raw_bronze()
-returns string
-language sql
-as
-$$
+-- create procedure if not exists raw_bronze.loan_monthly_copy_into_raw_bronze()
+-- returns string
+-- language sql
+-- as
+-- $$
 
 declare
     -- Environment variables
     db varchar default 'HOMEWORK_ASSIGNMENT';
     admin_schema varchar default 'ADMIN_SCHEMA';
+    admin_file_format varchar default 'INFER_SCHEMA_PIPE_DELIMITED';
     -- We will use "identifier" nomeclature for the logging table
     logging_table varchar default :admin_schema || '.' || 'LOAN_MONTHLY_AUDIT_HISTORY_TABLE';
     control_table varchar default 'LOAN_MONTHLY_EXPECTED_FILE_SCHEMA';
@@ -407,8 +408,13 @@ declare
     -- INSTEAD OF A FILE LIST LIKE BELOW WE CAN USE A FILE PATTERN:
     -- file_pattern_date varchar default to_varchar(dateadd('MONTH', -1, current_date()), 'YYYYMM');
     -- file_pattern varchar default 'LOAN_MONTHLY' || '_' || :file_pattern_date || '.csv.gz';
-    file_list_query varchar default '';
-    file_list varchar default '';
+    files_array array;
+    file_target varchar;
+    file_schema_compare_query varchar;
+    file_schema_compare_array array;
+    file_schema_failures_array array default [];
+    files_array_cleaned array;
+    files_list varchar default '';
     
     -- Dynamic DDL/DML variables
     copy_into_head varchar default '';
@@ -434,6 +440,12 @@ declare
     procedure_run_report varchar default '';
     return_statement varchar default '';
 
+    -- Custome no daily files exception
+    no_daily_files exception;
+
+    -- Custome no daily files exception
+    file_schema_mismatch exception;
+
     -- Custom copy into exception
     copy_into_failure exception;
     copy_into_error_message varchar default '';
@@ -458,16 +470,87 @@ begin
     procedure_run_report := :procedure_metadata['PROCEDURE_RUN_REPORT'];
 
 
-    -- Being procedure steps
+    -- Begin procedure steps
     procedure_run_report := :procedure_run_report || '\n'|| '  --Beginning copy into step';
 
 
-    file_list := (select listagg('''' || d.relative_path || '''', ', ') within group (order by d.relative_path)
-                  from directory(@raw_bronze.daily_files) d
-                  left join identifier(:file_target_table) t 
-                    on d.relative_path = t.file_name
-                  where t.file_name is null);
 
+    files_array := (select array_agg(d.relative_path) within group (order by d.relative_path) 
+                    from directory(@raw_bronze.daily_files) d 
+                    left join identifier(:file_target_table) t 
+                        on d.relative_path = t.file_name 
+                    where t.file_name is null);
+
+    if (array_size(files_array) = 0) then
+        raise no_daily_files;
+    else null;
+    end if;
+
+    files_array_cleaned := files_array;
+    for i in 0 to array_size(files_array) - 1 do
+        file_target := files_array[i];
+
+        file_schema_compare_query := 'select array_agg(object_construct(*))
+                                      from (select   
+                                                ''' || :file_target || ''' as inbound_file_name,
+                                                nf.column_name as inbound_file_column_name,
+                                                nf.order_id as inbound_file_order_id,
+                                                iff(regexp_like(nf.type, ''^NUMBER\\\\(\\\\d+, \\\\d+\\\\)$''),
+                                                    ''NUMBER(38, '' || regexp_substr(nf.type, ''^NUMBER\\\\(\\\\d+, (\\\\d+)\\\\)$'', 1, 1, ''e'', 1) || '')'',    
+                                                    nf.type) as inbound_file_datatype,
+                                                ''' || :control_table || ''' as admin_file_name,
+                                                ct.column_name as admin_file_schema_column_name,
+                                                ct.order_id as admin_file_schema_order_id,
+                                                iff(regexp_like(ct.type, ''^NUMBER\\\\(\\\\d+, \\\\d+\\\\)$''),
+                                                    ''NUMBER(38, '' || regexp_substr(ct.type, ''^NUMBER\\\\(\\\\d+, (\\\\d+)\\\\)$'', 1, 1, ''e'', 1) || '')'',    
+                                                    ct.type) as admin_file_schema_datatype,
+                                            from table(infer_schema(location => ''' || :file_stage || ''',
+                                                                  file_format => ''' || :admin_schema || '.' || :admin_file_format || ''',
+                                                                  files => ''' || :file_target || ''',
+                                                                  ignore_case => false)) nf
+                                            full outer join ' || :admin_schema || '.' || :control_table || ' ct
+                                                on nf.column_name = ct.column_name and nf.type = ct.type
+                                            where 
+                                                inbound_file_column_name is null
+                                                    or
+                                                admin_file_schema_column_name is null);';
+        execute immediate file_schema_compare_query;
+        query_id := last_query_id();
+        file_schema_compare_array := (select * from table(result_scan(:query_id)));
+        
+        if (array_size(file_schema_compare_array) = 0) then
+            null;
+        else
+            files_array_cleaned := array_remove(:files_array_cleaned, to_variant(:file_target));
+            file_schema_failures_array := array_cat(:file_schema_failures_array, :file_schema_compare_array);
+        end if;
+        
+    end for;
+
+    if (array_size(file_schema_failures_array) = 0) then
+        procedure_run_report := :procedure_run_report || '\n' || '    ----All files passed file schema check';
+    else
+        if (array_size(files_array_cleaned) = 0) then
+            procedure_run_report := :procedure_run_report || '\n' || '    ----All files failed file schema check. '
+                                                          || 'Check exception_messages column in the admin_schema.loan_monthly_audit_history table';
+            raise file_schema_mismatch;
+            -- Process should stop here
+        else
+            procedure_run_report := :procedure_run_report || '\n' || '    ----Some files failed file schema check.  Processing will continue. '
+                                                          || 'Check exception_messages column in the admin_schema.loan_monthly_audit_history table';
+
+            -- Just do an insert here                                              
+        end if;
+
+    end if;
+
+    -- TO DO:
+        -- create your new exceptions
+        -- add your insert statement for file exception
+
+
+    files_list := '''' || array_to_string(:files_array_cleaned, ''', ''') || '''';
+        
     copy_into_head := 'copy into ' || :raw_schema || '.' || :table_name || '
                             from (select 
                                         metadata$start_scan_time as loaded_at,
@@ -480,7 +563,7 @@ begin
     -- return copy_into_head;
     
     copy_into_tail := 'from ' || :file_stage || ')
-                       files = (' || :file_list || ')
+                       files = (' || :files_list || ')
                        file_format = ' || :file_format || ';';
     -- return copy_into_tail;
                 
@@ -551,7 +634,7 @@ exception
         procedure_run_report := :procedure_run_report || '\n' || :procedure_step_result;
 
         return_statement := '  --Failure: raw_bronze.loan_monthly_copy_into_raw_bronze() did not complete. ' || '\n' ||
-                            '    ----Exception_message: ' || :copy_into_error_message || '\n' ||
+                            '    ----Exception message: ' || :copy_into_error_message || '\n' ||
                             '    ----Copy into history: ' || :copy_into_history || '\n' ||
                             '  --LOAN_MONTHLY ingestion process terminated' || '\n' ||
                             'Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: '|| :run_id;
@@ -561,7 +644,7 @@ exception
         set end_time = :end_time,
             processing_time_HHMMSS = :processing_time,
             procedure_run_report = :procedure_run_report,
-            exception_message = :copy_into_error_message
+            exception_messages = :copy_into_error_message
         where run_id = :run_id;
 
         return return_statement;
@@ -577,7 +660,7 @@ exception
         procedure_run_report := :procedure_run_report || '\n' || :procedure_step_result;
 
         return_statement := '  --Failure: raw_bronze.loan_monthly_copy_into_raw_bronze() did not complete. ' || '\n' ||
-                            '    ----Exception_message: ' || :sql_error_message || '\n' ||
+                            '    ----Exception message: ' || :sql_error_message || '\n' ||
                             '  --LOAN_MONTHLY ingestion process terminated' || '\n' ||
                             'Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: '|| :run_id;
         procedure_run_report := :procedure_run_report || '\n' || :return_statement;
@@ -586,7 +669,7 @@ exception
         set end_time = :end_time,
             processing_time_HHMMSS = :processing_time,
             procedure_run_report = :procedure_run_report,
-            exception_message = :sql_error_message
+            exception_messages = :sql_error_message
         where run_id = :run_id;
 
         return return_statement;
@@ -746,7 +829,7 @@ exception
         procedure_run_report := :procedure_run_report || '\n' || :procedure_step_result;
 
         return_statement := '  --Failure: transform_silver.loan_monthly_merge_into_target_gold() did not complete. ' || '\n' ||
-                            '    ----Exception_message: ' || :sql_error_message || '\n' ||
+                            '    ----Exception message: ' || :sql_error_message || '\n' ||
                             'LOAN_MONTHLY ingestion process did not complete' || '\n' ||
                             'Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: '|| :run_id;
         procedure_run_report := :procedure_run_report || '\n' || :return_statement;
@@ -755,7 +838,7 @@ exception
         set end_time = :end_time,
             processing_time_HHMMSS = :processing_time,
             procedure_run_report = :procedure_run_report,
-            exception_message = :sql_error_message
+            exception_messages = :sql_error_message
         where run_id = :run_id;
 
         return return_statement;
