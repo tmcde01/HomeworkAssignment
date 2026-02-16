@@ -1,28 +1,37 @@
 ## This repo contains the work product for the Snowflake SQL/ETL Homework Assigment
 ****Note:****  
 
-A short video link demonstrating the assignment work product and covering the topics in this README.md file is provided below.  It is recommended to view the video first, then refer to details below as needed:
+A short video link demonstrating the assignment work product and covering the topics in this README.md file is provided below. 
 
-Link:  
 
 ### Homework Assignment Questions
 - How do you prevent duplicate loading if the same file arrives twice?
 
-  The first step of our copy into process checks files in the stage against existing filenames in the target_gold layer.  Ingest only happens if the file is not found.
+  Please see CopyIntoProcedure.sql file for a complete review of the file ingest process.  For this specific question the following query is used.  It compares files in the gold layer
+  to files in the stage:
+
+  files_array := (select array_agg(d.relative_path) within group (order by d.relative_path) 
+                    from directory(@raw_bronze.daily_files) d 
+                    left join identifier(:file_target_table) t 
+                        on d.relative_path = t.file_name 
+                    where t.file_name is null);
+    query_id := last_query_id();
+    procedure_step_result := (select array_agg(object_construct(*)) from table(result_scan(:query_id)));
+
+    if (array_size(files_array) = 0) then
+        files_array_string := array_to_string(:files_array, ', ');
+        raise no_daily_files;
+    else null;
+    end if;
   
 - How do you handle schema evolution if the file adds new columns?
 
-  Tables are created with schema evolution allowing for this.  Still, two approaches are suggested:  stop the process, trigger an alert, and alter the table manually for extra control and awareness; or script in the addition of the new
-  column. (It is possible to make all the necessary DDL/DML adjustments downstream with dynamic scripting). Either way, for the new columns there will be null values for the old files, and new values for the files.  In the approach here I
-  include a check in the copy into procedure to ensure the new file conforms to the expected file schema.  If not, an exception is triggered.  I prefer control in order to prevent unanticipated downstream effects -- auto-adding columns in
-  production could be risky.
+  Create tables with schema evolution enabled.  Still, two approaches are suggested:  stop the process, trigger an alert, and alter the table manually for extra control and awareness; or script in the addition of the new column. (It is possible to make all the necessary DDL/DML adjustments downstream with dynamic scripting). Either way, for the new columns there will be null values for the old files, and new values for the files.  In the CopyIntoProcedure.sql file there is a check to ensure incoming files match the expected schema.
 
 - What would you do if COPY INTO partially loads a file and then fails?
 
-  This depends on what my team and organization desires:  there could be a preference to skip the bad records and provide all available data, or to stop the process to investigate further.  Again, my preference is further investigation to
-  ensure data quality and integrity via analysis and testing.  Here I included an exception in my copy into procedure that compares rows encountered to rows loaded, and if there is not a 1:1 match I trigger the exception.  Normally I
-  would then save the data in the landing table to a failover table and reset the process for the next day.  Then I would analyze the data in the failover table.
-
+  This depends on what my team and organization desires:  there could be a preference to skip the bad records and provide all available data, or to stop the process to investigate further.  This scenario is also included in the CopyIntoProcedure.sql.  Also please see the Successful Run with Skipped Files LOAN MONTHLY.txt log file.
+  
 - What warehouse sizing / file sizing guidance would you give for performance?
 
   This is a huge topic, so I did some research.  Here is what I came up with:
