@@ -1,0 +1,20 @@
+Starting LOAN_MONTHLY ingestion process
+
+  --Beginning copy into step
+    ----Some files failed file schema check, but processing will continue. 
+    ----File schema column mismatches: 
+
+{"ADMIN_FILE_NAME":"LOAN_MONTHLY_EXPECTED_FILE_SCHEMA","ADMIN_FILE_SCHEMA_COLUMN_NAME":"interest_rate","ADMIN_FILE_SCHEMA_DATATYPE":"TEXT","ADMIN_FILE_SCHEMA_ORDER_ID":4,"INBOUND_FILE_NAME":"LOAN_MONTHLY_202512.csv.gz"}, {"ADMIN_FILE_NAME":"LOAN_MONTHLY_EXPECTED_FILE_SCHEMA","ADMIN_FILE_SCHEMA_COLUMN_NAME":"state","ADMIN_FILE_SCHEMA_DATATYPE":"TEXT","ADMIN_FILE_SCHEMA_ORDER_ID":5,"INBOUND_FILE_NAME":"LOAN_MONTHLY_202604.csv.gz"}, {"ADMIN_FILE_NAME":"LOAN_MONTHLY_EXPECTED_FILE_SCHEMA","INBOUND_FILE_COLUMN_NAME":"servicer_id","INBOUND_FILE_DATATYPE":"NUMBER(38, 0)","INBOUND_FILE_NAME":"LOAN_MONTHLY_202604.csv.gz","INBOUND_FILE_ORDER_ID":3}
+
+    ----Procedure exception: Copy into failure: not all file/rows successfully loaded
+    ----Procedure will terminate.
+  --Failure: raw_bronze.loan_monthly_copy_into_raw_bronze() did not complete. 
+    ----Exception message: Copy into failure: not all file/rows successfully loaded
+    ----Copy into history: [{"errors_seen":1,"file":"daily_files/LOAN_MONTHLY_202601.csv.gz","first_error":"File was loaded before.","rows_loaded":0,"rows_parsed":0,"status":"LOAD_SKIPPED"},{"errors_seen":1,"file":"daily_files/LOAN_MONTHLY_202602.csv.gz","first_error":"File was loaded before.","rows_loaded":0,"rows_parsed":0,"status":"LOAD_SKIPPED"},{"errors_seen":1,"file":"daily_files/LOAN_MONTHLY_202603.csv.gz","first_error":"File was loaded before.","rows_loaded":0,"rows_parsed":0,"status":"LOAD_SKIPPED"}]
+
+LOAN_MONTHLY ingestion process terminated
+  --Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: 5dc5c9f7-62d3-4b76-9c16-7105329e6c2a
+  
+  
+--Some files failed file schema check. Check procedure_run_report column for details
+--Copy into failure: not all file/rows successfully loaded

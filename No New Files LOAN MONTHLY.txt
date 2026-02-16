@@ -1,0 +1,14 @@
+Starting LOAN_MONTHLY ingestion process
+
+  --Beginning copy into step
+    ----Procedure exception: No new files to ingest
+    ----Procedure will terminate.
+  --Process suspended: raw_bronze.loan_monthly_copy_into_raw_bronze(). 
+    ----Exception message: No new files to ingest
+    ----File scan history: 
+
+LOAN_MONTHLY ingestion process terminated: this is the expected behavior
+  --Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: f8b00a85-a1ba-44e9-a83d-20425f82ccd9
+  
+ 
+--No new files to ingest

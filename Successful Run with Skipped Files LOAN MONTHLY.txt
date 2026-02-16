@@ -1,0 +1,22 @@
+Starting LOAN_MONTHLY ingestion process
+
+  --Beginning copy into step
+    ----Some files failed file schema check, but processing will continue. 
+    ----File schema column mismatches: 
+
+{"ADMIN_FILE_NAME":"LOAN_MONTHLY_EXPECTED_FILE_SCHEMA","ADMIN_FILE_SCHEMA_COLUMN_NAME":"interest_rate","ADMIN_FILE_SCHEMA_DATATYPE":"TEXT","ADMIN_FILE_SCHEMA_ORDER_ID":4,"INBOUND_FILE_NAME":"LOAN_MONTHLY_202512.csv.gz"}, {"ADMIN_FILE_NAME":"LOAN_MONTHLY_EXPECTED_FILE_SCHEMA","ADMIN_FILE_SCHEMA_COLUMN_NAME":"state","ADMIN_FILE_SCHEMA_DATATYPE":"TEXT","ADMIN_FILE_SCHEMA_ORDER_ID":5,"INBOUND_FILE_NAME":"LOAN_MONTHLY_202604.csv.gz"}, {"ADMIN_FILE_NAME":"LOAN_MONTHLY_EXPECTED_FILE_SCHEMA","INBOUND_FILE_COLUMN_NAME":"servicer_id","INBOUND_FILE_DATATYPE":"NUMBER(38, 0)","INBOUND_FILE_NAME":"LOAN_MONTHLY_202604.csv.gz","INBOUND_FILE_ORDER_ID":3}
+
+    ----Query id: 01c2756f-0107-cd52-0003-677300ad2ea2; Result: [{"error_limit":1,"errors_seen":0,"file":"daily_files/LOAN_MONTHLY_202601.csv.gz","rows_loaded":10,"rows_parsed":10,"status":"LOADED"},{"error_limit":1,"errors_seen":0,"file":"daily_files/LOAN_MONTHLY_202603.csv.gz","rows_loaded":5,"rows_parsed":5,"status":"LOADED"},{"error_limit":1,"errors_seen":0,"file":"daily_files/LOAN_MONTHLY_202602.csv.gz","rows_loaded":12,"rows_parsed":12,"status":"LOADED"}]
+  --Success:  raw_bronze.loan_monthly_copy_into_raw_bronze() complete. 
+    ----LOAN_MONTHLY ingestion process will continue...
+
+  --Beginning merge step
+    ----Query id: 01c2756f-0107-cda3-0003-677300ada5de; Result: [{"number of rows inserted":12}]
+  --Success:  transform_silver.loan_monthly_merge_into_target_gold() complete. 
+
+LOAN_MONTHLY ingestion process successfully completed
+  --Check the logs at admin_schema.loan_monthly_audit_history_table for run_id: a19fc091-7b05-401d-9a7d-016d78f0dfcf
+  
+ 
+ 
+--Some files failed file schema check. Check procedure_run_report column for details
