@@ -14,7 +14,7 @@ A short video link demonstrating the assignment work product and covering the to
 
 - How do you handle schema evolution if the file adds new columns?
 
-  Create tables with schema evolution enabled.  Still, two approaches are suggested:  stop the process, trigger an alert, and alter the table manually for extra control and awareness; or script in the addition of the new column. (It is possible to make all the necessary DDL/DML adjustments downstream with dynamic scripting). Either way, for the new columns there will be null values for the old files, and new values for the files.  In the CopyIntoProcedure.sql file there is a check to ensure incoming files match the expected schema:
+  Create tables with schema evolution enabled.  Still, two approaches are suggested:  stop the process, trigger an alert, and alter the table manually for extra control and awareness; or script in the addition of the new column. (It is possible to make all the necessary DDL/DML adjustments downstream with dynamic scripting). Either way, for the new columns there will be null values for the old file records, and new values for the new file records.  In the CopyIntoProcedure.sql file there is a check to ensure incoming files match the expected schema:
 
   <img width="1555" height="888" alt="image" src="https://github.com/user-attachments/assets/558204f0-ffa7-42a3-96e6-d596771093c4" />
 
