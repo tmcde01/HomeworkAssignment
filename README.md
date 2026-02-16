@@ -7,8 +7,8 @@ A short video link demonstrating the assignment work product and covering the to
 ### Homework Assignment Questions
 - How do you prevent duplicate loading if the same file arrives twice?
 
-  Please see CopyIntoProcedure.sql file for a complete review of the file ingest process.  For this specific question the following query is used.  It compares files in the gold layer
-  to files in the stage:
+  Please see CopyIntoProcedure.sql file for a complete review of the file ingest process.  For this specific question the following query is used.  It compares files in TARGET_GOLD.
+  TARGET_LOAN_MONTHLY to files in the stage:
 
   <img width="1083" height="346" alt="image" src="https://github.com/user-attachments/assets/4075ac6a-857c-4355-b7fa-a7e178d51dae" />
 
