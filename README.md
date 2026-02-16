@@ -57,26 +57,12 @@ A short video link demonstrating the assignment work product and covering the to
 
 ### Project Artifact File List and Descriptions
   - Assignment.pdf:  This is the original assignment, reviewed and formated to help guide development work.  It shows a thought process behind the reorganization of requirements to support an ordered workflow.
-  - LOAN_MONTHLY_202*.csv:  These are all testing csv's I created to stand up the process.
+  - LOAN_MONTHLY_202*.csv: These are all testing csv's I created to stand up the process and do testing.
 
 ### Main .sql Files and Description
-  - CopyIntoProcedure.sql:  This is the raw anonymous block used for the Copy Into procedure.
-  - 
-
-### Additional .sql / .py Files and Description
-  - transform_silver_logic.sql:  This is a separate worksheet showing a CTE cascade used for the data transform logic needed to clean up the records.  It can be reviewed individually for simplicity.
-  - file_format_infer_schema_pipe_delimited.sql This is a composable file format that is portable for any db, just like the above file.  It to be used with the infer_schema() function to analyze file metadata.  Provided as an example
-  - file_format_ingest_data_pipe_delimited.sql: This is also a composable file format that is also portable for any db, just like the above file.  It to be used with the copy into function to ingest data.  Also provided as an example
-  - postgres_hc_connection_config.py:  The local server to PostgreSQL connector .py module, included as a module in postgres_files_to_snowflake.py below
-  - snowflake_hc_connection_config.py: The local server to Snowflake connector .py module, included as a module in postgres_files_to_snowflake.py below
-  - postgres_files_to_snowflake.py:  The main .py script that will transfer files from PostgreSQL to snowflake, intended to simulate a daily file drop from a vendor to an AWS External Stage.  (Here we use internal stages as a proxy)
+  - CopyIntoProcedure.sql:  This is the raw anonymous block used for the Copy Into procedure in the RAW_BRONZE schema
+  - TransformSilverLogic.sql: This is the CTE cascade used for creating the Loan Monthly Clean View (VW_LOAN_MONTHLY_CLEAN) in the TRANSFORM_SILVER schema
  
 ### Bonus Items
- - Run book: 
-   -  Step 1: Using the file "database_object_creation.sql", run all.
-   -  Step 2: The scripts will stop at line 84 with the error message "STOP_HERE:  You will need to upload the test file 'LOAN_MONTHLY_202601.csv.gz' to the stage at admin_schema.testing_files".  Do that, then comment out the line.
-   -  Step 3: Hit "Run all" again. The object creation commands are constructed to prevent overwriting, i.e., "CREATE OBJECT IF NOT EXISTS"
-   -  Step 4: When you see the return message: "Function LOAN_MONTHLY_MERGE_INTO_TARGET_GOLD successfully created." You have created all the necessary objects and procedures
-   -  Step 5: Uncomment the last section "CHECK PROCESS OR CALL PROCEDURES". Follow the instructions to load files, run the process, and check the output.
-   -  Step 6: (Optional)  If you like, follow the instructions for creating / restarting the task dag.  Then monitor the ingest/ETL procedure as you like.  Again however, you will need to load files to the raw_bronze.daily_files stage and then ensure it gets refreshed to trigger the process. If the process has run previously you will need to add new files with new filenames, because previously ingested files will be skipped. 
- - Object dependency diagrams.  See the database_explorer.md and task_dag.md files in the "Project Artifact File List and Descriptions" section.
+ - Run book: This is covered in the video.  Please see the link.
+ - Object dependency diagrams. Please see the .jpg files in the Project Artifact File List and Descriptions sections for views of the database objects and task dags.
