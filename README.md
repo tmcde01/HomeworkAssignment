@@ -21,9 +21,10 @@ A short video link demonstrating the assignment work product and covering the to
 
 - What would you do if COPY INTO partially loads a file and then fails?
 
-  This depends on what my team and organization desires:  there could be a preference to skip the bad records and provide all available data, or to stop the process to investigate further.  This scenario is also included in the CopyIntoProcedure.sql.  Also please see the Successful Run with Skipped Files LOAN MONTHLY.txt log file.
+  This depends on what my team and organization desires:  there could be a preference to skip the bad records and provide all available data, or to stop the process to investigate further.  This scenario is also included in the CopyIntoProcedure.sql (see below).  Also please see the "Successful Run with Skipped Files LOAN MONTHLY.txt" log file.
 
-  <img width="1463" height="515" alt="image" src="https://github.com/user-attachments/assets/fec100c4-8423-4472-ae9a-29c085c78c27" />
+  <img width="1587" height="812" alt="image" src="https://github.com/user-attachments/assets/8d87be74-c5a4-4140-9074-3ac99a116d94" />
+
 
 - What warehouse sizing / file sizing guidance would you give for performance?
 
