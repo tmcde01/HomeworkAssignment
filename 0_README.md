@@ -3,6 +3,7 @@
 
 A short video link demonstrating the assignment work product and covering the topics in this README.md file is provided below. 
 
+https://drive.google.com/file/d/1l0U-7lZmE5F94yL_QNCGsxOqh5zE9i2h/view?usp=drive_link
 
 ### Homework Assignment Questions
 - How do you prevent duplicate loading if the same file arrives twice?
